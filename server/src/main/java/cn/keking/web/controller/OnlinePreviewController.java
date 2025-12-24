@@ -10,20 +10,33 @@ import cn.keking.utils.KkFileUtils;
 import cn.keking.utils.WebUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.opensagres.xdocreport.core.io.IOUtils;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +49,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.multipart.MultipartFile;
 
 import static cn.keking.service.FilePreview.PICTURE_FILE_PREVIEW_PAGE;
 
@@ -185,4 +199,47 @@ public class OnlinePreviewController {
         cacheService.addQueueTask(url);
         return "success";
     }
+
+  @GetMapping("/convert")
+  public ResponseEntity<?> convertToBinary(@RequestParam("url") String url,
+      HttpServletRequest req) {
+    Model model = new ExtendedModelMap();
+    String fileUrl;
+    try {
+      fileUrl = WebUtils.decodeUrl(url);
+    } catch (Exception ex) {
+      String errorMsg = String.format(BASE64_DECODE_ERROR_MSG, "url");
+      return ResponseEntity.badRequest()
+          .body(errorMsg);
+    }
+    FileAttribute fileAttribute = fileHandlerService.getFileAttribute(fileUrl, req);  //这里不在进行URL 处理了
+    model.addAttribute("file", fileAttribute);
+    FilePreview filePreview = previewFactory.get(fileAttribute);
+    logger.info("预览文件url：{}，previewType：{}", fileUrl, fileAttribute.getType());
+    fileUrl =WebUtils.urlEncoderencode(fileUrl);
+    if (ObjectUtils.isEmpty(fileUrl)) {
+      return ResponseEntity.status(403).body(null);
+    }
+    filePreview.filePreviewHandle(fileUrl, model, fileAttribute);
+    // 获取转换后的文件路径
+    String outFilePath = fileAttribute.getOutFilePath();
+    File outputFile = new File(outFilePath);
+
+    if (!outputFile.exists()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    // 创建Resource对象
+    Resource resource = new FileSystemResource(outputFile);
+
+    // 设置响应头
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentDisposition(ContentDisposition.attachment().filename(outputFile.getName(), StandardCharsets.UTF_8).build());
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+    return ResponseEntity.ok()
+        .headers(headers)
+        .contentLength(outputFile.length())
+        .body(resource);
+  }
 }
