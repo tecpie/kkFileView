@@ -226,7 +226,7 @@ public class OnlinePreviewController {
     File outputFile = new File(outFilePath);
 
     if (!outputFile.exists()) {
-      return ResponseEntity.notFound().build();
+      return ResponseEntity.badRequest().body("文件转换失败");
     }
 
     // 创建Resource对象

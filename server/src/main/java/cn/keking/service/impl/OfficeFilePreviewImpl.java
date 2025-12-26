@@ -55,18 +55,18 @@ public class OfficeFilePreviewImpl implements FilePreview {
         boolean isHtmlView = fileAttribute.isHtmlView();  //xlsx  转换成html
         String cacheName = fileAttribute.getCacheName();  //转换后的文件名
         String outFilePath = fileAttribute.getOutFilePath();  //转换后生成文件的路径
-        if (!officePreviewType.equalsIgnoreCase("html")) {
-            if (ConfigConstants.getOfficeTypeWeb() .equalsIgnoreCase("web")) {
-                if (suffix.equalsIgnoreCase("xlsx")) {
-                    model.addAttribute("pdfUrl", KkFileUtils.htmlEscape(url)); //特殊符号处理
-                    return XLSX_FILE_PREVIEW_PAGE;
-                }
-                if (suffix.equalsIgnoreCase("csv")) {
-                    model.addAttribute("csvUrl", KkFileUtils.htmlEscape(url));
-                    return CSV_FILE_PREVIEW_PAGE;
-                }
-            }
-        }
+//        if (!officePreviewType.equalsIgnoreCase("html")) {
+//            if (ConfigConstants.getOfficeTypeWeb() .equalsIgnoreCase("web")) {
+//                if (suffix.equalsIgnoreCase("xlsx")) {
+//                    model.addAttribute("pdfUrl", KkFileUtils.htmlEscape(url)); //特殊符号处理
+//                    return XLSX_FILE_PREVIEW_PAGE;
+//                }
+//                if (suffix.equalsIgnoreCase("csv")) {
+//                    model.addAttribute("csvUrl", KkFileUtils.htmlEscape(url));
+//                    return CSV_FILE_PREVIEW_PAGE;
+//                }
+//            }
+//        }
         if (forceUpdatedCache|| !fileHandlerService.listConvertedFiles().containsKey(cacheName) || !ConfigConstants.isCacheEnabled()) {
         // 下载远程文件到本地，如果文件在本地已存在不会重复下载
         ReturnResponse<String> response = DownloadUtils.downLoad(fileAttribute, fileName);
