@@ -493,10 +493,9 @@ public class FileHandlerService implements InitializingBean {
         boolean isHtmlView = suffix.equalsIgnoreCase("xls") || suffix.equalsIgnoreCase("xlsx") || suffix.equalsIgnoreCase("csv") || suffix.equalsIgnoreCase("xlsm") || suffix.equalsIgnoreCase("xlt") || suffix.equalsIgnoreCase("xltm") || suffix.equalsIgnoreCase("et") || suffix.equalsIgnoreCase("ett") || suffix.equalsIgnoreCase("xlam");
         String cacheFilePrefixName = null;
         try {
-            cacheFilePrefixName = originFileName.substring(0, originFileName.lastIndexOf(".")) + suffix + "."; //这里统一文件名处理 下面更具类型 各自添加后缀
+            cacheFilePrefixName = originFileName+ "."; //这里统一文件名处理 下面更具类型 各自添加后缀
         } catch (Exception e) {
             logger.error("获取文件名后缀错误：", e);
-            //  e.printStackTrace();
         }
         String cacheFileName = this.getCacheFileName(type, originFileName, cacheFilePrefixName, isHtmlView, isCompressFile);
         outFilePath = fileDir + cacheFileName;
