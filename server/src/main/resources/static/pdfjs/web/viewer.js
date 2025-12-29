@@ -2123,6 +2123,7 @@
           let regions;
           try {
             regions = JSON.parse(dataJson);
+            console.log(regions)
             if (regions.length > 0) {
               sessionStorage.setItem('dataJson', dataJson)
             }

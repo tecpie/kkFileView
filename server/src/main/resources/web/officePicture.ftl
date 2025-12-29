@@ -24,6 +24,7 @@
             background:#FBFBFB;
             border:1px solid #ddd;
             margin:1px auto;
+            margin-left:0;
             padding:5px;
         }
 
