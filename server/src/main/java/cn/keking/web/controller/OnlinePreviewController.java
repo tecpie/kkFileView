@@ -301,11 +301,12 @@ public class OnlinePreviewController {
 
   @GetMapping("/convert")
   public ResponseEntity<?> convertToBinary(@RequestParam("url") String url,
+      @RequestParam(required = false) String encryption,
       HttpServletRequest req) {
     Model model = new ExtendedModelMap();
     String fileUrl;
     try {
-      fileUrl = WebUtils.decodeUrl(url);
+      fileUrl = WebUtils.decodeUrl(url,encryption);
     } catch (Exception ex) {
       String errorMsg = String.format(BASE64_DECODE_ERROR_MSG, "url");
       return ResponseEntity.badRequest()
