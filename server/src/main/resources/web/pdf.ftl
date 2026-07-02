@@ -49,12 +49,15 @@
     var url = '${finalUrl}';
     var kkagent = '${kkagent}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
+    var params = new URLSearchParams(window.location.search);
+    var dataJson = params.get('data') || '{}';
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
     var viewerUrl = baseUrl + "pdfjs/web/viewer.html?file=" + encodeURIComponent(url);
 	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
+    viewerUrl += "&data=" + encodeURIComponent(dataJson);
     viewerUrl += "&disablepresentationmode=${pdfPresentationModeDisable}";
     viewerUrl += "&disableopenfile=${pdfOpenFileDisable}";
     viewerUrl += "&disableprint=${pdfPrintDisable}";
@@ -63,7 +66,7 @@
     viewerUrl += "&disableediting=${pdfDisableEditing}";
     viewerUrl += "&watermarktxt=" + watermarkEncoded;
     viewerUrl += "&pdfhighlightall=" + highlightEncoded;
-    viewerUrl += "#page=${page}";   // ?c 确保数字不包含千位分隔符
+    viewerUrl += "#page=${page}";
 <#if "true" == pdfSidebarOpen>
 	viewerUrl += "&pagemode=thumbs";
 <#else>

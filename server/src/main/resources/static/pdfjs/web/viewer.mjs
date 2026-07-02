@@ -17681,6 +17681,21 @@ class PDFPageView extends BasePDFPageView {
     }
     this.renderingState = RenderingStates.RUNNING;
     const canvasWrapper = this._ensureCanvasWrapper();
+    const dataJson = JSON.parse(sessionStorage.getItem("dataJson") || "[]");
+    dataJson.forEach(item => {
+      if (item[0] === this.id) {
+        const highlight = document.createElement("div");
+        highlight.setAttribute("data-page-highlight", this.id);
+        highlight.style.position = "absolute";
+        highlight.style.left = `calc(var(--scale-factor) * ${item[1]}px)`;
+        highlight.style.top = `calc(var(--scale-factor) * ${item[3]}px)`;
+        highlight.style.width = `calc(var(--scale-factor) * ${item[2] - item[1]}px)`;
+        highlight.style.height = `calc(var(--scale-factor) * ${item[4] - item[3]}px)`;
+        highlight.style.backgroundColor = "rgba(144,238,144,0.5)";
+        highlight.style.zIndex = "1";
+        div.append(highlight);
+      }
+    });
     if (!this.textLayer && this.#textLayerMode !== TextLayerMode.DISABLE && !pdfPage.isPureXfa) {
       this._accessibilityManager ||= new TextAccessibilityManager();
       this.textLayer = new TextLayerBuilder({
@@ -21093,6 +21108,10 @@ class ViewHistory {
         }) - 1;
       }
       this.file = database.files[index];
+      const dataJson = JSON.parse(sessionStorage.getItem("dataJson") || "[]");
+      if (dataJson.length > 0) {
+        this.file.page = parseInt(dataJson[0][0]);
+      }
       this.database = database;
     });
   }
@@ -22070,6 +22089,15 @@ const PDFViewerApplication = {
     disableEditing = params.get("disableediting") ?? 'false';
     kkhighlightAll = params.get("pdfhighlightall") ?? 'false';
     watermarkTxt= params.get('watermarktxt') ?? 'false';
+    const dataJson = params.get("data") || "false";
+    try {
+      const regions = JSON.parse(dataJson);
+      if (regions.length > 0) {
+        sessionStorage.setItem("dataJson", dataJson);
+      }
+    } catch (e) {
+      console.error("Invalid data JSON:", e);
+    }
     try {
       file = new URL(file).href;
     } catch {
@@ -22562,11 +22590,16 @@ const PDFViewerApplication = {
           const modes = apiPageLayoutToViewerModes(pageLayout);
           spreadMode = modes.spreadMode;
         }
-		if (kkhighlightAll !== "" && kkhighlightAll !== null && kkhighlightAll !== "null" && kkhighlightAll !== "false") 
-		 {
-         document.getElementById("findInput").value = kkhighlightAll;
-         document.getElementById("findHighlightAll").click();
-         }
+        if (isNotEmpty(kkhighlightAll)) {
+          const findInput = document.getElementById("findInput");
+          if (findInput) {
+            findInput.value = kkhighlightAll;
+          }
+          this.eventBus.dispatch("findfromurlhash", {
+            source: this,
+            query: kkhighlightAll.match(/\S+/g) || kkhighlightAll
+          });
+        }
         this.setInitialView(hash, {
           rotation,
           sidebarView,
