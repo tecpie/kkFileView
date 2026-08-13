@@ -1,4 +1,94 @@
 var kkhighlightAll;
+const KK_SET_HIGHLIGHT_TYPE = "kk-set-highlight";
+let pendingHighlightMessage = null;
+let currentHighlightRegions = [];
+let highlightRuntimeReady = false;
+
+function clearPageHighlights() {
+  document.querySelectorAll("[data-page-highlight]").forEach(el => el.remove());
+}
+
+function createPageHighlightElement(pageId, item) {
+  const highlight = document.createElement("div");
+  highlight.setAttribute("data-page-highlight", String(pageId));
+  highlight.style.position = "absolute";
+  highlight.style.left = `calc(var(--scale-factor) * ${item[1]}px)`;
+  highlight.style.top = `calc(var(--scale-factor) * ${item[3]}px)`;
+  highlight.style.width = `calc(var(--scale-factor) * ${item[2] - item[1]}px)`;
+  highlight.style.height = `calc(var(--scale-factor) * ${item[4] - item[3]}px)`;
+  highlight.style.backgroundColor = "rgba(144,238,144,0.5)";
+  highlight.style.zIndex = "1";
+  highlight.style.pointerEvents = "none";
+  return highlight;
+}
+
+function appendPageHighlights(pageView, regions) {
+  if (!pageView?.div || !Array.isArray(regions)) {
+    return;
+  }
+  const pageId = Number(pageView.id);
+  pageView.div.querySelectorAll(`[data-page-highlight="${pageView.id}"]`).forEach(el => el.remove());
+  regions.forEach(item => {
+    if (Number(item?.[0]) === pageId) {
+      pageView.div.append(createPageHighlightElement(pageView.id, item));
+    }
+  });
+}
+
+function applyHighlightRegions(regions, {
+  scroll = true
+} = {}) {
+  const list = Array.isArray(regions) ? regions.filter(item => Array.isArray(item) && item.length >= 5) : [];
+  currentHighlightRegions = list;
+  clearPageHighlights();
+  const app = window.PDFViewerApplication;
+  const pdfViewer = app?.pdfViewer;
+  if (pdfViewer) {
+    const pageCount = pdfViewer.pagesCount || 0;
+    for (let i = 0; i < pageCount; i++) {
+      const pageView = pdfViewer.getPageView(i);
+      if (pageView?.div) {
+        appendPageHighlights(pageView, list);
+      }
+    }
+  }
+  if (!scroll || list.length === 0) {
+    return;
+  }
+  const pageNumber = Number.parseInt(list[0][0], 10);
+  if (pageNumber > 0 && app?.pdfDocument) {
+    app.page = pageNumber;
+  }
+}
+
+function handleSetHighlightMessage(msg) {
+  if (!highlightRuntimeReady) {
+    pendingHighlightMessage = msg;
+    return;
+  }
+  applyHighlightRegions(msg?.data || [], {
+    scroll: msg?.scroll !== false
+  });
+}
+
+function notifyHighlightReady() {
+  try {
+    parent.postMessage({
+      type: "kk-highlight-ready"
+    }, "*");
+  } catch {}
+}
+
+window.addEventListener("message", event => {
+  if (event.source !== window.parent) {
+    return;
+  }
+  const msg = event.data;
+  if (!msg || msg.type !== KK_SET_HIGHLIGHT_TYPE) {
+    return;
+  }
+  handleSetHighlightMessage(msg);
+});
 var watermarkTxt;
 const queryString = document.location.search.substring(1);
 const params = (0, parseQueryString)(queryString);
@@ -17681,21 +17771,7 @@ class PDFPageView extends BasePDFPageView {
     }
     this.renderingState = RenderingStates.RUNNING;
     const canvasWrapper = this._ensureCanvasWrapper();
-    const dataJson = JSON.parse(sessionStorage.getItem("dataJson") || "[]");
-    dataJson.forEach(item => {
-      if (item[0] === this.id) {
-        const highlight = document.createElement("div");
-        highlight.setAttribute("data-page-highlight", this.id);
-        highlight.style.position = "absolute";
-        highlight.style.left = `calc(var(--scale-factor) * ${item[1]}px)`;
-        highlight.style.top = `calc(var(--scale-factor) * ${item[3]}px)`;
-        highlight.style.width = `calc(var(--scale-factor) * ${item[2] - item[1]}px)`;
-        highlight.style.height = `calc(var(--scale-factor) * ${item[4] - item[3]}px)`;
-        highlight.style.backgroundColor = "rgba(144,238,144,0.5)";
-        highlight.style.zIndex = "1";
-        div.append(highlight);
-      }
-    });
+    appendPageHighlights(this, currentHighlightRegions);
     if (!this.textLayer && this.#textLayerMode !== TextLayerMode.DISABLE && !pdfPage.isPureXfa) {
       this._accessibilityManager ||= new TextAccessibilityManager();
       this.textLayer = new TextLayerBuilder({
@@ -21108,10 +21184,6 @@ class ViewHistory {
         }) - 1;
       }
       this.file = database.files[index];
-      const dataJson = JSON.parse(sessionStorage.getItem("dataJson") || "[]");
-      if (dataJson.length > 0) {
-        this.file.page = parseInt(dataJson[0][0]);
-      }
       this.database = database;
     });
   }
@@ -22089,15 +22161,6 @@ const PDFViewerApplication = {
     disableEditing = params.get("disableediting") ?? 'false';
     kkhighlightAll = params.get("pdfhighlightall") ?? 'false';
     watermarkTxt= params.get('watermarktxt') ?? 'false';
-    const dataJson = params.get("data") || "false";
-    try {
-      const regions = JSON.parse(dataJson);
-      if (regions.length > 0) {
-        sessionStorage.setItem("dataJson", dataJson);
-      }
-    } catch (e) {
-      console.error("Invalid data JSON:", e);
-    }
     try {
       file = new URL(file).href;
     } catch {
@@ -24039,7 +24102,19 @@ function webViewerLoad() {
     console.error("webviewerloaded:", ex);
     document.dispatchEvent(event);
   }
-  PDFViewerApplication.run(config);
+  PDFViewerApplication.run(config).then(() => {
+    PDFViewerApplication.eventBus.on("pagesloaded", () => {
+      highlightRuntimeReady = true;
+      if (pendingHighlightMessage) {
+        const msg = pendingHighlightMessage;
+        pendingHighlightMessage = null;
+        handleSetHighlightMessage(msg);
+      }
+      notifyHighlightReady();
+    });
+  }).catch(ex => {
+    console.error("highlight ready hook:", ex);
+  });
 }
 document.blockUnblockOnload?.(true);
 if (document.readyState === "interactive" || document.readyState === "complete") {

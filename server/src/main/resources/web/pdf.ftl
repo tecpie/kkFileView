@@ -49,15 +49,12 @@
     var url = '${finalUrl}';
     var kkagent = '${kkagent}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
-    var params = new URLSearchParams(window.location.search);
-    var dataJson = params.get('data') || '{}';
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
     var viewerUrl = baseUrl + "pdfjs/web/viewer.html?file=" + encodeURIComponent(url);
 	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
-    viewerUrl += "&data=" + encodeURIComponent(dataJson);
     viewerUrl += "&disablepresentationmode=${pdfPresentationModeDisable}";
     viewerUrl += "&disableopenfile=${pdfOpenFileDisable}";
     viewerUrl += "&disableprint=${pdfPrintDisable}";
@@ -73,7 +70,52 @@
 	viewerUrl += "&pagemode=none";
 </#if>
     var iframe = document.getElementById('pdfFrame');
+    var pendingHighlightMsgs = [];
+    var pdfFrameReady = false;
+
+    iframe.addEventListener('load', function () {
+        // about:blank 也会触发 load，真正 viewer 加载完成后再转发
+        if (!iframe.src || iframe.src === 'about:blank') {
+            return;
+        }
+        pdfFrameReady = true;
+        if (!iframe.contentWindow) {
+            return;
+        }
+        pendingHighlightMsgs.forEach(function (msg) {
+            iframe.contentWindow.postMessage(msg, '*');
+        });
+        pendingHighlightMsgs = [];
+    });
+
     iframe.src = viewerUrl;
+
+    // 父页面动态切换高亮：转发到 pdf.js viewer（跨域只能靠 postMessage）
+    window.addEventListener('message', function (event) {
+        var msg = event.data;
+        if (!msg || !msg.type) {
+            return;
+        }
+        if (msg.type === 'kk-highlight-ready') {
+            if (event.source !== iframe.contentWindow) {
+                return;
+            }
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage(msg, '*');
+                }
+            } catch (e) {}
+            return;
+        }
+        if (msg.type !== 'kk-set-highlight' || event.source === iframe.contentWindow) {
+            return;
+        }
+        if (pdfFrameReady && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(msg, '*');
+            return;
+        }
+        pendingHighlightMsgs = [msg];
+    });
 
     // 图片预览切换
     function goForImage() {
