@@ -65,6 +65,29 @@ URL：[https://file.kkview.cn](https://file.kkview.cn)
 
 ## Change History
 
+### Version 5.0.1 (July 13, 2026)
+
+#### Security Fixes
+1. Fixed `/addTask` bypassing trusted-host and local-directory filters, which could allow server-side request forgery (SSRF) (GHSA-gwwj-52hv-6g2m)
+2. Fixed the `/listFiles` `directory` parameter escaping the demo directory, which could allow path traversal and directory information disclosure (GHSA-pmp8-g8p2-p6jq)
+
+#### Fixes
+1. Fixed PDF cross-origin access, page positioning, text highlighting, printing, and print watermark issues
+2. Fixed PDF absolute paths behind reverse proxies and parsing failures when watermark or highlight text contains special characters
+3. Fixed inconsistent Redis settings across standalone, cluster, master-replica, and sentinel modes, including missing address protocols
+4. Fixed successful responses after MIME validation failures, unclear HTTP error reporting, and accidental closure of a shared HTTP client
+5. Fixed xlsx parsing crashes when LuckyExcel data-validation types have no mapping
+
+#### Improvements
+1. Moved LuckyExcel parsing for large xlsx files into a Web Worker, with automatic main-thread fallback when the Worker is unavailable or fails
+2. Added `pdf.sidebar.open` to control whether the PDF sidebar opens by default
+3. Added Linux, Windows, and macOS validation to Maven CI
+4. Added a repository security policy and private vulnerability reporting guidance
+
+#### Upgrade Notes
+1. All users running v5.0.0 or earlier are strongly encouraged to upgrade to v5.0.1
+2. JDK 21 or higher remains required, and existing v5.0.0 configuration can be reused
+
 ### Version 5.0.0 (April 14, 2026)
 
 #### Improvements

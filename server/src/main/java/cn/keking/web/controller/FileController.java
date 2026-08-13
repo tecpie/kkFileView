@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -341,13 +342,23 @@ public class FileController {
             }
 
             // ==================== 2. 构建路径和验证 ====================
-            String basePath = fileDir + demoPath;
-            if (!ObjectUtils.isEmpty(path)) {
-                basePath += path + File.separator;
+            Path currentDir;
+            try {
+                currentDir = resolveDirectoryUnderRoot(Paths.get(fileDir, demoDir), path);
+            } catch (InvalidPathException | SecurityException e) {
+                logger.warn("拒绝访问 demo 目录之外的文件列表路径");
+                result.put("total", 0);
+                result.put("data", Collections.emptyList());
+                result.put("error", "非法目录路径");
+                return result;
+            } catch (IOException e) {
+                logger.error("解析 demo 目录失败", e);
+                result.put("total", 0);
+                result.put("data", Collections.emptyList());
+                return result;
             }
 
-            File currentDir = new File(basePath);
-            if (!currentDir.exists() || !currentDir.isDirectory()) {
+            if (!Files.isDirectory(currentDir)) {
                 result.put("total", 0);
                 result.put("data", Collections.emptyList());
                 return result;
@@ -357,13 +368,13 @@ public class FileController {
             List<Path> allPaths = new ArrayList<>();
             long collectStartTime = System.currentTimeMillis();
 
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(basePath))) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentDir)) {
                 for (Path entry : stream) {
                     allPaths.add(entry);
                     stats.incrementFileCount();
                 }
             } catch (IOException e) {
-                logger.error("读取目录失败: {}", basePath, e);
+                logger.error("读取目录失败: {}", currentDir, e);
                 result.put("total", 0);
                 result.put("data", Collections.emptyList());
                 return result;
@@ -490,6 +501,46 @@ public class FileController {
         }
 
         return result;
+    }
+
+    /**
+     * Resolve an existing directory below the configured demo root.
+     *
+     * <p>Both lexical normalization and real-path checks are required: the
+     * former blocks traversal and absolute paths, while the latter prevents a
+     * symlink inside the demo directory from escaping the configured root.</p>
+     */
+    static Path resolveDirectoryUnderRoot(Path root, String requestedPath) throws IOException {
+        Path normalizedRoot = root.toAbsolutePath().normalize();
+        String relativePath = requestedPath == null ? "" : requestedPath.replace('\\', '/');
+
+        if (relativePath.indexOf('\0') >= 0
+                || relativePath.startsWith("/")
+                || relativePath.matches("^[A-Za-z]:.*")) {
+            throw new SecurityException("Absolute paths are not allowed");
+        }
+
+        Path relative = Paths.get(relativePath);
+        if (relative.isAbsolute()) {
+            throw new SecurityException("Absolute paths are not allowed");
+        }
+        for (Path segment : relative) {
+            if ("..".equals(segment.toString())) {
+                throw new SecurityException("Parent path segments are not allowed");
+            }
+        }
+
+        Path resolved = normalizedRoot.resolve(relative).normalize();
+        if (!resolved.startsWith(normalizedRoot)) {
+            throw new SecurityException("Path escapes the configured root");
+        }
+
+        Path realRoot = normalizedRoot.toRealPath();
+        Path realResolved = resolved.toRealPath();
+        if (!realResolved.startsWith(realRoot)) {
+            throw new SecurityException("Path escapes the configured root through a symbolic link");
+        }
+        return realResolved;
     }
 
     /**
