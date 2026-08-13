@@ -171,7 +171,8 @@ public class FileHandlerService {
     public String getPdf2jpgUrl(String pdfFilePath, int index) {
         String baseUrl = BaseUrlFilter.getBaseUrl();
         pdfFilePath = pdfFilePath.replace(fileDir, "");
-        String pdfFolder = pdfFilePath.substring(0, pdfFilePath.length() - 4);
+        int suffixIndex = pdfFilePath.lastIndexOf('.');
+        String pdfFolder = suffixIndex > 0 ? pdfFilePath.substring(0, suffixIndex) : pdfFilePath;
         // 对整个路径进行编码，包括特殊字符
         String encodedPath = URLEncoder.encode(pdfFolder, StandardCharsets.UTF_8);
         encodedPath = encodedPath
@@ -272,12 +273,8 @@ public class FileHandlerService {
             throw new IllegalArgumentException("文件名超过系统限制");
         }
         boolean isHtmlView = suffix.equalsIgnoreCase("xls") || suffix.equalsIgnoreCase("xlsx") || suffix.equalsIgnoreCase("csv") || suffix.equalsIgnoreCase("xlsm") || suffix.equalsIgnoreCase("xlt") || suffix.equalsIgnoreCase("xltm") || suffix.equalsIgnoreCase("et") || suffix.equalsIgnoreCase("ett") || suffix.equalsIgnoreCase("xlam");
-        String cacheFilePrefixName = null;
-        try {
-            cacheFilePrefixName = originFileName+ "."; //这里统一文件名处理 下面更具类型 各自添加后缀
-        } catch (Exception e) {
-            logger.error("获取文件名后缀错误：", e);
-        }
+        int lastDot = originFileName.lastIndexOf('.');
+        String cacheFilePrefixName = (lastDot > 0 ? originFileName.substring(0, lastDot) : originFileName) + ".";
         String cacheFileName = this.getCacheFileName(type, originFileName, cacheFilePrefixName, isHtmlView, isCompressFile);
         outFilePath = fileDir + cacheFileName;
         originFilePath = fileDir + originFileName;
