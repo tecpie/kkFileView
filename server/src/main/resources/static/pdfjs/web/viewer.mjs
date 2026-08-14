@@ -2,13 +2,14 @@ var kkhighlightAll;
 const KK_SET_HIGHLIGHT_TYPE = "kk-set-highlight";
 let pendingHighlightMessage = null;
 let currentHighlightRegions = [];
+let currentHighlightColors = [];
 let highlightRuntimeReady = false;
 
 function clearPageHighlights() {
   document.querySelectorAll("[data-page-highlight]").forEach(el => el.remove());
 }
 
-function createPageHighlightElement(pageId, item) {
+function createPageHighlightElement(pageId, item, color) {
   const highlight = document.createElement("div");
   highlight.setAttribute("data-page-highlight", String(pageId));
   highlight.style.position = "absolute";
@@ -16,30 +17,33 @@ function createPageHighlightElement(pageId, item) {
   highlight.style.top = `calc(var(--scale-factor) * ${item[3]}px)`;
   highlight.style.width = `calc(var(--scale-factor) * ${item[2] - item[1]}px)`;
   highlight.style.height = `calc(var(--scale-factor) * ${item[4] - item[3]}px)`;
-  highlight.style.backgroundColor = "rgba(144,238,144,0.5)";
+  highlight.style.backgroundColor = color || "rgba(144,238,144,0.5)";
   highlight.style.zIndex = "1";
   highlight.style.pointerEvents = "none";
+  highlight.setAttribute("data-y0", String(item[3]));
   return highlight;
 }
 
-function appendPageHighlights(pageView, regions) {
+function appendPageHighlights(pageView, regions, colors) {
   if (!pageView?.div || !Array.isArray(regions)) {
     return;
   }
   const pageId = Number(pageView.id);
   pageView.div.querySelectorAll(`[data-page-highlight="${pageView.id}"]`).forEach(el => el.remove());
-  regions.forEach(item => {
+  regions.forEach((item, index) => {
     if (Number(item?.[0]) === pageId) {
-      pageView.div.append(createPageHighlightElement(pageView.id, item));
+      pageView.div.append(createPageHighlightElement(pageView.id, item, colors?.[index]));
     }
   });
 }
 
 function applyHighlightRegions(regions, {
-  scroll = true
+  scroll = true,
+  colors
 } = {}) {
   const list = Array.isArray(regions) ? regions.filter(item => Array.isArray(item) && item.length >= 5) : [];
   currentHighlightRegions = list;
+  currentHighlightColors = Array.isArray(colors) ? colors : [];
   clearPageHighlights();
   const app = window.PDFViewerApplication;
   const pdfViewer = app?.pdfViewer;
@@ -48,17 +52,35 @@ function applyHighlightRegions(regions, {
     for (let i = 0; i < pageCount; i++) {
       const pageView = pdfViewer.getPageView(i);
       if (pageView?.div) {
-        appendPageHighlights(pageView, list);
+        appendPageHighlights(pageView, list, colors);
       }
     }
   }
   if (!scroll || list.length === 0) {
     return;
   }
-  const pageNumber = Number.parseInt(list[0][0], 10);
-  if (pageNumber > 0 && app?.pdfDocument) {
-    app.page = pageNumber;
+  const first = list[0];
+  const pageNumber = Number.parseInt(first[0], 10);
+  if (!(pageNumber > 0 && app?.pdfDocument)) {
+    return;
   }
+  app.page = pageNumber;
+  const scrollToFirst = () => {
+    const pageView = app.pdfViewer?.getPageView(pageNumber - 1);
+    const pageEl = pageView?.div;
+    if (!pageEl) {
+      return;
+    }
+    const y0 = String(first[3]);
+    const marks = [...pageEl.querySelectorAll("[data-page-highlight]")];
+    const target = marks.find(node => node.getAttribute("data-y0") === y0) || marks[0] || pageEl;
+    target.scrollIntoView({
+      block: "center",
+      inline: "nearest"
+    });
+  };
+  scrollToFirst();
+  requestAnimationFrame(scrollToFirst);
 }
 
 function handleSetHighlightMessage(msg) {
@@ -67,7 +89,46 @@ function handleSetHighlightMessage(msg) {
     return;
   }
   applyHighlightRegions(msg?.data || [], {
-    scroll: msg?.scroll !== false
+    scroll: msg?.scroll !== false,
+    colors: msg?.colors
+  });
+}
+
+function handleSetPageMessage(msg) {
+  const page = Number(msg?.page);
+  const y = Number(msg?.y);
+  const app = window.PDFViewerApplication;
+  if (!(page > 0 && app?.pdfDocument)) {
+    return;
+  }
+  app.page = page;
+  if (!Number.isFinite(y)) {
+    return;
+  }
+  const pageView = app.pdfViewer?.getPageView(page - 1);
+  const pageEl = pageView?.div;
+  if (!pageEl) {
+    return;
+  }
+  const marks = [...pageEl.querySelectorAll("[data-page-highlight]")];
+  let target = pageEl;
+  if (marks.length > 0) {
+    let best = Infinity;
+    marks.forEach(node => {
+      const ny = Number(node.getAttribute("data-y0"));
+      if (!Number.isFinite(ny)) {
+        return;
+      }
+      const dist = Math.abs(ny - y);
+      if (dist < best) {
+        best = dist;
+        target = node;
+      }
+    });
+  }
+  target.scrollIntoView({
+    block: "center",
+    inline: "nearest"
   });
 }
 
@@ -84,10 +145,16 @@ window.addEventListener("message", event => {
     return;
   }
   const msg = event.data;
-  if (!msg || msg.type !== KK_SET_HIGHLIGHT_TYPE) {
+  if (!msg || !msg.type) {
     return;
   }
-  handleSetHighlightMessage(msg);
+  if (msg.type === KK_SET_HIGHLIGHT_TYPE) {
+    handleSetHighlightMessage(msg);
+    return;
+  }
+  if (msg.type === "kk-set-page") {
+    handleSetPageMessage(msg);
+  }
 });
 var watermarkTxt;
 const queryString = document.location.search.substring(1);
@@ -17771,7 +17838,7 @@ class PDFPageView extends BasePDFPageView {
     }
     this.renderingState = RenderingStates.RUNNING;
     const canvasWrapper = this._ensureCanvasWrapper();
-    appendPageHighlights(this, currentHighlightRegions);
+    appendPageHighlights(this, currentHighlightRegions, currentHighlightColors);
     if (!this.textLayer && this.#textLayerMode !== TextLayerMode.DISABLE && !pdfPage.isPureXfa) {
       this._accessibilityManager ||= new TextAccessibilityManager();
       this.textLayer = new TextLayerBuilder({
@@ -24111,6 +24178,18 @@ function webViewerLoad() {
         handleSetHighlightMessage(msg);
       }
       notifyHighlightReady();
+    });
+    PDFViewerApplication.eventBus.on("pagechanging", evt => {
+      const page = Number(evt?.pageNumber);
+      if (!(page > 0)) {
+        return;
+      }
+      try {
+        parent.postMessage({
+          type: "kk-page-change",
+          page
+        }, "*");
+      } catch {}
     });
   }).catch(ex => {
     console.error("highlight ready hook:", ex);

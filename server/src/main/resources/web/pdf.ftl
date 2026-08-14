@@ -52,7 +52,7 @@
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
-    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?file=" + encodeURIComponent(url);
+    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=diffscroll&file=" + encodeURIComponent(url);
 	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
     viewerUrl += "&disablepresentationmode=${pdfPresentationModeDisable}";
@@ -96,7 +96,7 @@
         if (!msg || !msg.type) {
             return;
         }
-        if (msg.type === 'kk-highlight-ready') {
+        if (msg.type === 'kk-highlight-ready' || msg.type === 'kk-page-change') {
             if (event.source !== iframe.contentWindow) {
                 return;
             }
@@ -107,7 +107,7 @@
             } catch (e) {}
             return;
         }
-        if (msg.type !== 'kk-set-highlight' || event.source === iframe.contentWindow) {
+        if ((msg.type !== 'kk-set-highlight' && msg.type !== 'kk-set-page') || event.source === iframe.contentWindow) {
             return;
         }
         if (pdfFrameReady && iframe.contentWindow) {
