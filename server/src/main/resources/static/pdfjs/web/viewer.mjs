@@ -5752,7 +5752,7 @@ const defaultOptions = {
   },
   localeProperties: {
     value: {
-      lang: navigator.language || "en-US"
+      lang: "zh-cn"
     },
     kind: OptionKind.BROWSER
   },
@@ -5829,7 +5829,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   defaultZoomValue: {
-    value: "",
+    value: "page-width",
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   disableHistory: {
@@ -5949,7 +5949,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER
   },
   sidebarViewOnLoad: {
-    value: -1,
+    value: 0,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   scrollModeOnLoad: {
@@ -5965,7 +5965,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   viewerCssTheme: {
-    value: 0,
+    value: 1,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   viewOnLoad: {
@@ -6637,7 +6637,7 @@ class BasePreferences {
     commentLearnMoreUrl: "",
     cursorToolOnLoad: 0,
     defaultZoomDelay: 400,
-    defaultZoomValue: "",
+    defaultZoomValue: "page-width",
     disablePageLabels: false,
     enableAltText: false,
     enableAltTextModelDownload: true,
@@ -6660,11 +6660,11 @@ class BasePreferences {
     pageColorsBackground: "Canvas",
     pageColorsForeground: "CanvasText",
     pdfBugEnabled: false,
-    sidebarViewOnLoad: -1,
+    sidebarViewOnLoad: 0,
     scrollModeOnLoad: -1,
     spreadModeOnLoad: -1,
     textLayerMode: 1,
-    viewerCssTheme: 0,
+    viewerCssTheme: 1,
     viewOnLoad: 0,
     disableAutoFetch: false,
     disableFontFace: false,
@@ -8265,9 +8265,9 @@ function createBundle(lang, text) {
 class genericl10n_GenericL10n extends L10n {
   constructor(lang) {
     super({
-      lang
+      lang: "zh-cn"
     });
-    const generateBundles = !lang ? genericl10n_GenericL10n.#generateBundlesFallback.bind(genericl10n_GenericL10n, this.getLanguage()) : genericl10n_GenericL10n.#generateBundles.bind(genericl10n_GenericL10n, "en-us", this.getLanguage());
+    const generateBundles = genericl10n_GenericL10n.#generateBundles.bind(genericl10n_GenericL10n, "en-us", "zh-cn");
     this._setL10n(new DOMLocalization([], generateBundles));
   }
   static async *#generateBundles(defaultLang, baseLang) {
@@ -21477,7 +21477,7 @@ class ViewsManager extends Sidebar {
       toggleButton
     }, l10n.getDirection() === "ltr", false);
     this.isOpen = false;
-    this.active = SidebarView.THUMBS;
+    this.active = SidebarView.OUTLINE;
     this.isInitialViewSet = false;
     this.isInitialEventDispatched = false;
     this.onToggled = null;
@@ -21512,7 +21512,7 @@ class ViewsManager extends Sidebar {
     this.isInitialViewSet = false;
     this.isInitialEventDispatched = false;
     this.#hideUINotification(true);
-    this.switchView(SidebarView.THUMBS);
+    this.switchView(SidebarView.OUTLINE);
     this.outlineButton.disabled = this.attachmentsButton.disabled = this.layersButton.disabled = false;
     this.viewsManagerCurrentOutlineButton.disabled = true;
   }
@@ -21866,6 +21866,11 @@ const PDFViewerApplication = {
     } catch (ex) {
       console.error("initialize:", ex);
     }
+    AppOptions.set("defaultZoomValue", "page-width");
+    AppOptions.set("sidebarViewOnLoad", 0);
+    AppOptions.set("localeProperties", {
+      lang: "zh-cn"
+    });
     if (AppOptions.get("pdfBugEnabled")) {
       await this._parseHashParams();
     }

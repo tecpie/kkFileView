@@ -20,21 +20,40 @@ Adobe CMap resources are covered by their own copyright but the same license:
 
 See https://github.com/adobe-type-tools/cmap-resources
 -->
-<html dir="ltr" mozdisallowselectionprint>
+<html lang="zh-CN" dir="ltr" mozdisallowselectionprint style="color-scheme: only light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="google" content="notranslate" />
+    <meta name="color-scheme" content="only light" />
     <title>PDF.js viewer</title>
 
 <!-- This snippet is used in production (included from viewer.html) -->
-<link rel="resource" type="application/l10n" href="locale/locale.json" />
+<link rel="resource" type="application/l10n" href="locale/locale.json?v=zh-cn-3" />
 <script src="compatibility.mjs" type="module"></script>
 <script src="../build/pdf.mjs" type="module"></script>
 
     <link rel="stylesheet" href="viewer.css" />
+    <link rel="stylesheet" href="kk-toolbar.css?v=zh-cn-toolbar-6" />
+    <style>
+      :root {
+        color-scheme: only light !important;
+        --csstools-color-scheme--light: initial !important;
+        --body-bg-color: #ffffff !important;
+      }
+      html, body, #viewerContainer, #mainContainer, #outerContainer {
+        color-scheme: only light !important;
+        background-color: #ffffff !important;
+      }
+      #viewsManagerAddFileButton,
+      #viewsManagerCurrentOutlineButton,
+      #viewsManagerStatus {
+        display: none !important;
+      }
+    </style>
+    <script>document.documentElement.classList.add("kk-compact");</script>
 
-  <script src="viewer.mjs?v=diff-scroll" type="module"></script>
+  <script src="viewer.mjs?v=zh-cn-toolbar-5" type="module"></script>
   </head>
 
   <body tabindex="0">
@@ -56,7 +75,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                   aria-haspopup="true"
                   aria-controls="viewsManager"
                 >
-                  <span data-l10n-id="pdfjs-toggle-views-manager-button-label"></span>
+                  <span data-l10n-id="pdfjs-toggle-views-manager-button-label">目录</span>
                 </button>
                 <div
                   id="viewsManager"
@@ -83,23 +102,23 @@ See https://github.com/adobe-type-tools/cmap-resources
                         </button>
                         <menu id="viewsManagerSelectorOptions" role="listbox" class="popupMenu hidden withMark">
                           <li>
-                            <button id="thumbnailsViewMenu" role="option" type="button" tabindex="-1">
-                              <span data-l10n-id="pdfjs-views-manager-pages-option-label"></span>
+                            <button id="outlinesViewMenu" role="option" type="button" tabindex="-1">
+                              <span data-l10n-id="pdfjs-views-manager-outlines-option-label">目录</span>
                             </button>
                           </li>
                           <li>
-                            <button id="outlinesViewMenu" role="option" type="button" tabindex="-1">
-                              <span data-l10n-id="pdfjs-views-manager-outlines-option-label"></span>
+                            <button id="thumbnailsViewMenu" role="option" type="button" tabindex="-1">
+                              <span data-l10n-id="pdfjs-views-manager-pages-option-label">页面</span>
                             </button>
                           </li>
                           <li>
                             <button id="attachmentsViewMenu" role="option" type="button" tabindex="-1">
-                              <span data-l10n-id="pdfjs-views-manager-attachments-option-label"></span>
+                              <span data-l10n-id="pdfjs-views-manager-attachments-option-label">附件</span>
                             </button>
                           </li>
                           <li>
                             <button id="layersViewMenu" role="option" type="button" tabindex="-1">
-                              <span data-l10n-id="pdfjs-views-manager-layers-option-label"></span>
+                              <span data-l10n-id="pdfjs-views-manager-layers-option-label">图层</span>
                             </button>
                           </li>
                         </menu>
@@ -232,7 +251,7 @@ See https://github.com/adobe-type-tools/cmap-resources
                     aria-expanded="false"
                     aria-controls="findbar"
                   >
-                    <span data-l10n-id="pdfjs-findbar-button-label"></span>
+                    <span data-l10n-id="pdfjs-findbar-button-label">搜索</span>
                   </button>
                   <div class="hidden doorHanger toolbarHorizontalGroup" id="findbar">
                     <div id="findInputContainer" class="toolbarHorizontalGroup">
@@ -280,11 +299,11 @@ See https://github.com/adobe-type-tools/cmap-resources
                 </div>
                 <div class="toolbarHorizontalGroup hiddenSmallView">
                   <button class="toolbarButton" type="button" id="previous" tabindex="0" data-l10n-id="pdfjs-previous-button">
-                    <span data-l10n-id="pdfjs-previous-button-label"></span>
+                    <span data-l10n-id="pdfjs-previous-button-label">上一页</span>
                   </button>
                   <div class="splitToolbarButtonSeparator"></div>
                   <button class="toolbarButton" type="button" id="next" tabindex="0" data-l10n-id="pdfjs-next-button">
-                    <span data-l10n-id="pdfjs-next-button-label"></span>
+                    <span data-l10n-id="pdfjs-next-button-label">下一页</span>
                   </button>
                 </div>
                 <div class="toolbarHorizontalGroup">
@@ -1222,5 +1241,6 @@ See https://github.com/adobe-type-tools/cmap-resources
     </div>
     <!-- outerContainer -->
     <div id="printContainer"></div>
+    <script src="kk-toolbar.js?v=zh-cn-toolbar-7"></script>
   </body>
 </html>

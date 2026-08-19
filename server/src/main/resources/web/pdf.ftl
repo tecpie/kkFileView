@@ -52,9 +52,11 @@
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
-    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=diffscroll&file=" + encodeURIComponent(url);
+    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=zh-cn-toolbar-7&file=" + encodeURIComponent(url);
 	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
+    var parentParams = new URLSearchParams(window.location.search);
+    var showtools = parentParams.get('showtools');
     viewerUrl += "&disablepresentationmode=${pdfPresentationModeDisable}";
     viewerUrl += "&disableopenfile=${pdfOpenFileDisable}";
     viewerUrl += "&disableprint=${pdfPrintDisable}";
@@ -63,9 +65,12 @@
     viewerUrl += "&disableediting=${pdfDisableEditing}";
     viewerUrl += "&watermarktxt=" + watermarkEncoded;
     viewerUrl += "&pdfhighlightall=" + highlightEncoded;
-    viewerUrl += "#page=${page}";
+    if (showtools === 'true' || showtools === '1' || showtools === 'yes') {
+        viewerUrl += "&showtools=true";
+    }
+    viewerUrl += "#page=${page}&zoom=page-width";
 <#if "true" == pdfSidebarOpen>
-	viewerUrl += "&pagemode=thumbs";
+	viewerUrl += "&pagemode=bookmarks";
 <#else>
 	viewerUrl += "&pagemode=none";
 </#if>

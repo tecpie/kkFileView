@@ -31,8 +31,25 @@ public class PdfViewerCompatibilityTests {
         String pdfTemplate = readResource("/web/pdf.ftl");
 
         assertTrue(pdfTemplate.contains("<#if \"true\" == pdfSidebarOpen>"));
-        assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=thumbs\";"));
+        assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=bookmarks\";"));
         assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=none\";"));
+    }
+
+    @Test
+    void shouldLoadCompactToolbarAssetsInPdfViewer() throws IOException {
+        String viewerHtml = readResource("/static/pdfjs/web/viewer.html");
+
+        assertTrue(viewerHtml.contains("kk-toolbar.css"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js"));
+        assertTrue(viewerHtml.contains("kk-compact"));
+    }
+
+    @Test
+    void shouldForwardShowtoolsQueryToPdfViewer() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(pdfTemplate.contains("parentParams.get('showtools')"));
+        assertTrue(pdfTemplate.contains("viewerUrl += \"&showtools=true\";"));
     }
 
     @Test

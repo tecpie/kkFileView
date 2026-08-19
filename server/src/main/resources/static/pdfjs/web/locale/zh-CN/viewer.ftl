@@ -171,6 +171,84 @@ pdfjs-toggle-sidebar-button =
 pdfjs-toggle-sidebar-notification-button =
     .title = 切换侧栏（文档所含的大纲/附件/图层）
 pdfjs-toggle-sidebar-button-label = 切换侧栏
+
+## 侧栏视图（页面 / 目录 / 附件 / 图层）
+
+pdfjs-toggle-views-manager-button =
+    .title = 切换侧栏
+pdfjs-toggle-views-manager-notification-button =
+    .title = 切换侧栏（文档包含缩略图/目录/附件/图层）
+pdfjs-toggle-views-manager-button-label = 目录
+
+pdfjs-views-manager-sidebar =
+    .aria-label = 侧栏
+pdfjs-views-manager-view-selector-button =
+    .title = 视图
+pdfjs-views-manager-view-selector-button-label = 视图
+pdfjs-views-manager-pages-title = 页面
+pdfjs-views-manager-outlines-title = 目录
+pdfjs-views-manager-attachments-title = 附件
+pdfjs-views-manager-layers-title = 图层
+
+pdfjs-views-manager-pages-option-label = 页面
+pdfjs-views-manager-outlines-option-label = 目录
+pdfjs-views-manager-attachments-option-label = 附件
+pdfjs-views-manager-layers-option-label = 图层
+
+pdfjs-views-manager-add-file-button =
+    .title = 添加文件
+pdfjs-views-manager-add-file-button-label = 添加文件
+
+# Variables:
+#   $count (Number) - the number of selected pages.
+pdfjs-views-manager-pages-status-action-label =
+    { $count ->
+        [one] 已选择 { $count } 页
+       *[other] 已选择 { $count } 页
+    }
+pdfjs-views-manager-pages-status-none-action-label = 选择页面
+pdfjs-views-manager-pages-status-action-button-label = 管理
+pdfjs-views-manager-pages-status-copy-button-label = 复制
+pdfjs-views-manager-pages-status-cut-button-label = 剪切
+pdfjs-views-manager-pages-status-delete-button-label = 删除
+pdfjs-views-manager-pages-status-save-as-button-label = 另存为…
+
+# Variables:
+#   $count (Number) - the number of selected pages to be cut.
+pdfjs-views-manager-status-undo-cut-label =
+    { $count ->
+        [one] 已剪切 1 页
+       *[other] 已剪切 { $count } 页
+    }
+
+# Variables:
+#   $count (Number) - the number of selected pages to be copied.
+pdfjs-views-manager-pages-status-undo-copy-label =
+    { $count ->
+        [one] 已复制 1 页
+       *[other] 已复制 { $count } 页
+    }
+
+# Variables:
+#   $count (Number) - the number of selected pages to be deleted.
+pdfjs-views-manager-pages-status-undo-delete-label =
+    { $count ->
+        [one] 已删除 1 页
+       *[other] 已删除 { $count } 页
+    }
+
+pdfjs-views-manager-pages-status-waiting-ready-label = 正在准备文件…
+pdfjs-views-manager-pages-status-waiting-uploading-label = 正在上传文件…
+
+pdfjs-views-manager-status-warning-cut-label = 无法剪切，请刷新页面后重试。
+pdfjs-views-manager-status-warning-copy-label = 无法复制，请刷新页面后重试。
+pdfjs-views-manager-status-warning-delete-label = 无法删除，请刷新页面后重试。
+pdfjs-views-manager-status-warning-save-label = 无法保存，请刷新页面后重试。
+pdfjs-views-manager-status-undo-button-label = 撤销
+pdfjs-views-manager-status-close-button =
+    .title = 关闭
+pdfjs-views-manager-status-close-button-label = 关闭
+
 pdfjs-document-outline-button =
     .title = 显示文档大纲（双击展开/折叠所有项）
 pdfjs-document-outline-button-label = 文档大纲
@@ -188,7 +266,7 @@ pdfjs-current-outline-item-button =
 pdfjs-current-outline-item-button-label = 当前大纲项目
 pdfjs-findbar-button =
     .title = 在文档中查找
-pdfjs-findbar-button-label = 查找
+pdfjs-findbar-button-label = 搜索
 pdfjs-additional-layers = 其他图层
 
 ## Thumbnails panel item (tooltip and alt text for images)

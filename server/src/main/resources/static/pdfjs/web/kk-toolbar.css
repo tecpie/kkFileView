@@ -1,0 +1,588 @@
+/* kkFileView compact reading chrome — paper chips + seal FAB */
+
+:root {
+  color-scheme: only light;
+  --csstools-color-scheme--light: initial;
+  --kk-paper: #fff;
+  --kk-ink: #1a1714;
+  --kk-muted: #57534e;
+  --kk-line: rgba(26, 23, 20, 0.08);
+  --kk-fog: #f4f1ec;
+  --kk-shadow: 0 6px 18px rgba(26, 23, 20, 0.12), 0 0 0 1px var(--kk-line);
+  --kk-chip-h: 36px;
+  --kk-idle-opacity: 0.42;
+}
+
+html,
+html.kk-compact,
+html.kk-compact body,
+html.kk-compact * {
+  color-scheme: only light !important;
+  --csstools-color-scheme--light: initial !important;
+}
+
+html.kk-compact,
+html.kk-compact body {
+  --toolbar-height: 0px;
+  --body-bg-color: #ffffff !important;
+  --toolbar-bg-color: #ffffff !important;
+  --doorhanger-bg-color: #ffffff !important;
+  --main-color: #1a1714 !important;
+  --field-color: #1a1714 !important;
+  --field-bg-color: #ffffff !important;
+  --dropdown-btn-bg-color: #f4f1ec !important;
+  --toolbar-icon-bg-color: #1a1714 !important;
+  --toolbar-icon-hover-bg-color: #1a1714 !important;
+  --toggled-btn-color: #1a1714 !important;
+  background-color: #ffffff !important;
+}
+
+html.kk-compact #toolbarContainer {
+  height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: visible !important;
+  pointer-events: none;
+}
+
+html.kk-compact #toolbarViewer,
+html.kk-compact #toolbarViewerLeft {
+  height: 0 !important;
+  overflow: visible !important;
+  justify-content: flex-start;
+}
+
+html.kk-compact #toolbarViewer .toolbarButtonSpacer,
+html.kk-compact #toolbarViewerLeft > .toolbarHorizontalGroup:empty {
+  display: none !important;
+}
+
+html.kk-compact #toolbarViewerLeft > :not(#viewsManagerToggleButton):not(#viewsManager),
+html.kk-compact #toolbarViewerMiddle,
+html.kk-compact #toolbarViewerRight {
+  visibility: hidden;
+}
+
+html.kk-compact #kkBottomNav,
+html.kk-compact #kkBottomNav *,
+html.kk-compact #kkToolsPanel,
+html.kk-compact #kkToolsPanel * {
+  visibility: visible;
+}
+
+html.kk-compact #viewerContainer {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding-bottom: 64px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.kk-compact,
+html.kk-compact body,
+html.kk-compact #outerContainer,
+html.kk-compact #mainContainer {
+  overflow: hidden !important;
+}
+
+html.kk-compact #viewerContainer::-webkit-scrollbar,
+html.kk-compact #viewsManagerContent::-webkit-scrollbar,
+html.kk-compact #outlinesView::-webkit-scrollbar,
+html.kk-compact #thumbnailsView::-webkit-scrollbar,
+html.kk-compact *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+html.kk-compact,
+html.kk-compact * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html.kk-compact #toolbarContainer #loadingBar {
+  top: 0;
+  pointer-events: none;
+}
+
+html.kk-compact #viewsManagerToggleButton,
+html.kk-compact #viewsManager,
+html.kk-compact #kkBottomNav,
+html.kk-compact #kkBottomNav *,
+html.kk-compact #kkToolsFab,
+html.kk-compact #kkToolsPanel,
+html.kk-compact #kkToolsPanel * {
+  pointer-events: auto;
+}
+
+html.kk-compact #viewsManager {
+  position: fixed;
+  top: 0;
+  height: 100%;
+  z-index: 10000;
+}
+
+html.kk-compact #viewsManagerHeaderLabel {
+  display: none !important;
+}
+
+html.kk-compact #viewsManagerToggleButton {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10020;
+  width: auto;
+  min-width: 36px;
+  height: var(--kk-chip-h);
+  aspect-ratio: unset;
+  padding: 0 12px 0 10px;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--kk-paper) !important;
+  color: var(--kk-ink);
+  box-shadow: var(--kk-shadow);
+  font: 600 12px/1 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  opacity: var(--kk-idle-opacity);
+  transition: opacity 0.16s ease;
+}
+
+html.kk-compact #viewsManagerToggleButton::before {
+  width: 15px;
+  height: 15px;
+  background-color: var(--kk-ink);
+  opacity: 1;
+}
+
+html.kk-compact #viewsManagerToggleButton > span {
+  display: inline !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  color: var(--kk-ink);
+}
+
+html.kk-compact #viewsManagerToggleButton.toggled {
+  background: var(--kk-ink) !important;
+  color: var(--kk-paper);
+  opacity: 1;
+}
+
+html.kk-compact #viewsManagerToggleButton.toggled::before {
+  background-color: var(--kk-paper);
+}
+
+html.kk-compact #viewsManagerToggleButton.toggled > span {
+  color: var(--kk-paper);
+}
+
+html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible) {
+  opacity: 1;
+  outline: 2px solid var(--kk-ink);
+  outline-offset: 2px;
+}
+
+#kkBottomNav {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 10020;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--kk-chip-h);
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--kk-paper);
+  box-shadow: var(--kk-shadow);
+  font: 600 12px/1 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  opacity: var(--kk-idle-opacity);
+  transition: opacity 0.16s ease;
+}
+
+#kkBottomNav:is(:hover, :focus-within, :has(.toggled)) {
+  opacity: 1;
+}
+
+#kkBottomNav .splitToolbarButtonSeparator,
+#kkBottomNav .hiddenSmallView:empty {
+  display: none !important;
+}
+
+#kkBottomNav #previous,
+#kkBottomNav #next,
+#kkBottomNav #viewFindButton {
+  width: auto;
+  height: 30px;
+  aspect-ratio: unset;
+  padding: 0 10px;
+  gap: 5px;
+  border-radius: 999px;
+  color: var(--kk-ink);
+}
+
+#kkBottomNav #previous::before,
+#kkBottomNav #next::before,
+#kkBottomNav #viewFindButton::before {
+  background-color: var(--kk-ink);
+  opacity: 1;
+}
+
+#kkBottomNav #previous > span,
+#kkBottomNav #next > span,
+#kkBottomNav #viewFindButton > span {
+  display: inline !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  color: inherit;
+}
+
+#kkBottomNav .toolbarButton:is(:hover, :focus-visible) {
+  background: var(--kk-fog) !important;
+}
+
+#kkBottomNav #viewFindButton.toggled {
+  background: var(--kk-fog) !important;
+  color: var(--kk-ink);
+}
+
+#kkBottomNav #viewFindButton.toggled::before {
+  background-color: var(--kk-ink);
+}
+
+#kkBottomNav #viewFindButton.toggled > span {
+  color: var(--kk-ink);
+}
+
+#kkBottomNav > .toolbarHorizontalGroup {
+  height: 30px;
+  align-items: center;
+  gap: 2px;
+}
+
+#kkBottomNav .toolbarButtonWithContainer {
+  height: 30px;
+  width: auto;
+  aspect-ratio: unset;
+}
+
+#kkBottomNav .toolbarButtonWithContainer > .toolbarButton {
+  width: auto;
+}
+
+#kkBottomNav #pageNumber {
+  width: 2.8em;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--kk-fog);
+  color: var(--kk-ink);
+  font: 600 12px/30px ui-monospace, "Cascadia Mono", Consolas, monospace;
+  text-align: center;
+}
+
+#kkBottomNav #numPages.toolbarLabel {
+  padding: 0 6px 0 2px;
+  color: var(--kk-muted);
+  font: 600 12px/30px system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+html.kk-compact #kkBottomNav #findbar {
+  --toolbar-height: 32px;
+  --main-color: #1a1714;
+  --field-color: #1a1714;
+  --field-bg-color: #f4f1ec;
+  height: auto !important;
+  inset-block-start: auto !important;
+  inset-block-end: calc(100% + 14px) !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: 0 !important;
+  transform: none;
+  min-height: 44px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #fff !important;
+  color: #1a1714 !important;
+  box-shadow: var(--kk-shadow);
+  z-index: 10040;
+}
+
+html.kk-compact #kkBottomNav #findbar,
+html.kk-compact #kkBottomNav #findbar label,
+html.kk-compact #kkBottomNav #findbar .toolbarLabel,
+html.kk-compact #kkBottomNav #findbar .toolbarButton {
+  color: #1a1714 !important;
+}
+
+html.kk-compact #kkBottomNav #findInput,
+html.kk-compact #kkBottomNav .toolbarField {
+  background: #f4f1ec !important;
+  background-color: #f4f1ec !important;
+  color: #1a1714 !important;
+  -webkit-text-fill-color: #1a1714;
+  border: 1px solid rgba(26, 23, 20, 0.12) !important;
+  caret-color: #1a1714;
+}
+
+html.kk-compact #kkBottomNav #findbar .toolbarButton::before {
+  background-color: #1a1714 !important;
+}
+
+html.kk-compact #kkBottomNav #findbar > * {
+  height: auto;
+  min-height: 32px;
+}
+
+html.kk-compact #kkBottomNav #findbar.doorHanger::before,
+html.kk-compact #kkBottomNav #findbar.doorHanger::after {
+  top: 100%;
+  bottom: auto;
+  border-bottom-color: transparent !important;
+}
+
+html.kk-compact #kkBottomNav #findbar.doorHanger::before {
+  border-top-color: var(--doorhanger-border-color);
+}
+
+html.kk-compact #kkBottomNav #findbar.doorHanger::after {
+  border-top-color: var(--doorhanger-bg-color);
+}
+
+#kkToolsFab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 10030;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--kk-paper);
+  color: var(--kk-ink);
+  box-shadow: var(--kk-shadow);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  opacity: var(--kk-idle-opacity);
+  transition: opacity 0.16s ease, background-color 0.16s ease;
+}
+
+html.kk-show-tools #kkToolsFab {
+  display: flex;
+}
+
+html.kk-show-tools #kkToolsFab:is(:hover, :focus-visible, [aria-expanded="true"]) {
+  opacity: 1;
+}
+
+#kkToolsFab:is(:hover, :focus-visible) {
+  outline: 2px solid var(--kk-ink);
+  outline-offset: 2px;
+}
+
+#kkToolsFab .kk-fab-icon,
+#kkToolsFab .kk-fab-icon::before,
+#kkToolsFab .kk-fab-icon::after {
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+}
+
+#kkToolsFab .kk-fab-icon {
+  position: relative;
+}
+
+#kkToolsFab .kk-fab-icon::before,
+#kkToolsFab .kk-fab-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+#kkToolsFab .kk-fab-icon::before {
+  top: -5px;
+}
+
+#kkToolsFab .kk-fab-icon::after {
+  top: 5px;
+}
+
+html.kk-tools-open #kkToolsFab {
+  background: #fff;
+  color: var(--kk-ink);
+  opacity: 1;
+}
+
+html.kk-tools-open #kkToolsFab .kk-fab-icon,
+html.kk-tools-open #kkToolsFab .kk-fab-icon::before,
+html.kk-tools-open #kkToolsFab .kk-fab-icon::after {
+  background: var(--kk-ink);
+}
+
+html.kk-tools-open #kkToolsFab .kk-fab-icon {
+  transform: rotate(45deg);
+}
+
+html.kk-tools-open #kkToolsFab .kk-fab-icon::before,
+html.kk-tools-open #kkToolsFab .kk-fab-icon::after {
+  top: 0;
+  transform: rotate(90deg);
+}
+
+#kkToolsPanel {
+  --toolbar-height: 36px;
+  --menuitem-height: 32px;
+  --main-color: #1a1714;
+  --field-color: #1a1714;
+  --field-bg-color: #ffffff;
+  --dropdown-btn-bg-color: #f4f1ec;
+  --toolbar-icon-bg-color: #1a1714;
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: 76px;
+  z-index: 10025;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: min(92vw, 420px);
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--kk-paper);
+  color: #1a1714;
+  box-shadow: var(--kk-shadow);
+}
+
+html.kk-show-tools.kk-tools-open #kkToolsPanel {
+  display: flex;
+}
+
+#kkToolsPanel #toolbarViewerMiddle,
+#kkToolsPanel #toolbarViewerRight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  height: auto;
+  gap: 4px;
+}
+
+#kkToolsPanel .toolbarButton:not(.labeled) {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+#kkToolsPanel .toolbarButton.labeled {
+  width: 100%;
+  min-width: 180px;
+  height: auto;
+  min-height: 32px;
+  aspect-ratio: unset;
+  justify-content: flex-start;
+  padding: 6px 12px;
+  gap: 8px;
+  border-radius: 8px;
+}
+
+#kkToolsPanel .toolbarButton.labeled > span {
+  display: inline !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  white-space: nowrap;
+  color: var(--kk-ink);
+}
+
+#kkToolsPanel .toolbarButtonWithContainer {
+  height: 36px;
+  width: 36px;
+  position: relative;
+  overflow: visible;
+}
+
+#kkToolsPanel #scaleSelectContainer,
+#kkToolsPanel #scaleSelect,
+#kkToolsPanel #scaleSelect option,
+#kkToolsPanel .dropdownToolbarButton,
+#kkToolsPanel .dropdownToolbarButton > select {
+  height: 36px;
+  min-width: 108px;
+  width: auto;
+  background: #fff !important;
+  background-color: #fff !important;
+  color: #1a1714 !important;
+  -webkit-text-fill-color: #1a1714;
+  border-color: rgba(26, 23, 20, 0.12);
+}
+
+#kkToolsPanel .toolbarButton::before,
+#kkToolsPanel .dropdownToolbarButton::after {
+  background-color: #1a1714 !important;
+}
+
+#kkToolsPanel .toolbarButton.labeled,
+#kkToolsPanel .toolbarButton.labeled > span,
+#kkToolsPanel .editorParamsLabel,
+#kkToolsPanel #secondaryToolbar {
+  color: #1a1714 !important;
+}
+
+#kkToolsPanel .hiddenMediumView {
+  display: flex !important;
+}
+
+#kkToolsPanel .verticalToolbarSeparator {
+  display: none;
+}
+
+html.kk-compact #kkToolsPanel .editorParamsToolbar,
+html.kk-compact #kkToolsPanel #secondaryToolbar {
+  inset-block-start: auto !important;
+  inset-block-end: calc(100% + 8px) !important;
+  inset-inline-end: 0 !important;
+  width: 220px;
+  height: auto !important;
+  max-height: min(50vh, 360px);
+  overflow: auto;
+  padding: 6px 0;
+  background: #fff;
+  box-shadow: var(--kk-shadow);
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  #kkBottomNav #previous > span,
+  #kkBottomNav #next > span,
+  #kkBottomNav #viewFindButton > span {
+    display: none !important;
+  }
+
+  #kkBottomNav #previous,
+  #kkBottomNav #next,
+  #kkBottomNav #viewFindButton {
+    padding: 0;
+    width: 30px;
+  }
+}
+
+@media print {
+  #kkBottomNav,
+  #kkToolsFab,
+  #kkToolsPanel,
+  #viewsManagerToggleButton {
+    display: none !important;
+  }
+}
