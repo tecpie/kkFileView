@@ -85,6 +85,15 @@ public class PdfViewerCompatibilityTests {
     }
 
     @Test
+    void shouldNotShowJpgPreviewSwitchOnPdfPage() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(!pdfTemplate.contains("jpg.svg"));
+        assertTrue(!pdfTemplate.contains("goForImage"));
+        assertTrue(!pdfTemplate.contains("img-preview"));
+    }
+
+    @Test
     void shouldForwardRegionSelectMessagesBetweenHostAndViewer() throws IOException {
         String pdfTemplate = readResource("/web/pdf.ftl");
 

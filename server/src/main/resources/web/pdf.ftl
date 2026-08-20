@@ -20,15 +20,6 @@
             border: none;
             display: block;
         }
-        .img-preview {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            cursor: pointer;
-            z-index: 999;
-            width: 48px;
-            height: 48px;
-        }
     </style>
 </head>
 <body>
@@ -40,10 +31,6 @@
 </#if>
 
 <iframe id="pdfFrame" src="about:blank"></iframe>
-
-<#if "false" == switchDisabled>
-    <img class="img-preview" src="images/jpg.svg" alt="使用图片预览" title="使用图片预览" onclick="goForImage()"/>
-</#if>
 
 <script type="text/javascript">
     var url = '${finalUrl}';
@@ -135,17 +122,6 @@
         });
         pendingHighlightMsgs.push(msg);
     });
-
-    // 图片预览切换
-    function goForImage() {
-        var href = window.location.href;
-        if (href.indexOf("officePreviewType=pdf") !== -1) {
-            href = href.replace("officePreviewType=pdf", "officePreviewType=image");
-        } else {
-            href += (href.indexOf('?') === -1 ? '?' : '&') + "officePreviewType=image";
-        }
-        window.location.href = href;
-    }
 </script>
 </body>
 </html>
