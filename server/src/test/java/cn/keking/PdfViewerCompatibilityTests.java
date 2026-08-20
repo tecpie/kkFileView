@@ -85,6 +85,29 @@ public class PdfViewerCompatibilityTests {
     }
 
     @Test
+    void shouldForwardRegionSelectMessagesBetweenHostAndViewer() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(pdfTemplate.contains("kk-start-region-select"));
+        assertTrue(pdfTemplate.contains("kk-cancel-region-select"));
+        assertTrue(pdfTemplate.contains("kk-region-selected"));
+    }
+
+    @Test
+    void shouldEnableSingleRegionSelectOverlayOnPdfPages() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("kk-start-region-select"));
+        assertTrue(toolbarJs.contains("kk-cancel-region-select"));
+        assertTrue(toolbarJs.contains("kk-region-selected"));
+        assertTrue(toolbarJs.contains("请框选区域"));
+        assertTrue(toolbarJs.contains("--scale-factor"));
+        assertTrue(toolbarCss.contains("kk-region-selecting"));
+        assertTrue(toolbarCss.contains("crosshair"));
+    }
+
+    @Test
     void shouldPreferPdfForOfficePreviewByDefault() throws IOException {
         String properties = readResource("/application.properties");
 

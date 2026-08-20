@@ -361,5 +361,220 @@
   whenViewerReady(function (app) {
     bindEdgeReveal();
     bindFitWidePages(app);
+    bindRegionSelect(app);
   });
+
+  var REGION_START = "kk-start-region-select";
+  var REGION_CANCEL = "kk-cancel-region-select";
+  var REGION_SELECTED = "kk-region-selected";
+  var REGION_BOX_CLASS = "kk-region-box";
+  var REGION_HINT_ID = "kkRegionHint";
+  var MIN_BOX_PX = 4;
+
+  function bindRegionSelect(app) {
+    var selecting = false;
+    var drag = null;
+    var lastRegion = null;
+    var hint = null;
+
+    function getScaleFactor(pageEl) {
+      var raw = window.getComputedStyle(pageEl).getPropertyValue("--scale-factor");
+      var scale = parseFloat(raw);
+      return scale > 0 ? scale : 1;
+    }
+
+    function pageNumberOf(pageEl) {
+      var n = Number(pageEl.getAttribute("data-page-number"));
+      return n > 0 ? n : 1;
+    }
+
+    function cssToPdf(pageEl, clientX, clientY) {
+      var rect = pageEl.getBoundingClientRect();
+      var scale = getScaleFactor(pageEl);
+      var x = (clientX - rect.left - pageEl.clientLeft) / scale;
+      var y = (clientY - rect.top - pageEl.clientTop) / scale;
+      var maxX = pageEl.clientWidth / scale;
+      var maxY = pageEl.clientHeight / scale;
+      return {
+        x: Math.min(Math.max(0, x), maxX),
+        y: Math.min(Math.max(0, y), maxY)
+      };
+    }
+
+    function round2(n) {
+      return Math.round(n * 100) / 100;
+    }
+
+    function layoutBox(box, x0, y0, x1, y1) {
+      var left = Math.min(x0, x1);
+      var top = Math.min(y0, y1);
+      var width = Math.abs(x1 - x0);
+      var height = Math.abs(y1 - y0);
+      box.style.left = "calc(var(--scale-factor) * " + left + "px)";
+      box.style.top = "calc(var(--scale-factor) * " + top + "px)";
+      box.style.width = "calc(var(--scale-factor) * " + width + "px)";
+      box.style.height = "calc(var(--scale-factor) * " + height + "px)";
+    }
+
+    function clearBoxes() {
+      document.querySelectorAll("." + REGION_BOX_CLASS).forEach(function (el) {
+        el.remove();
+      });
+    }
+
+    function ensureHint() {
+      if (hint && hint.isConnected) {
+        return hint;
+      }
+      hint = document.getElementById(REGION_HINT_ID);
+      if (!hint) {
+        hint = document.createElement("div");
+        hint.id = REGION_HINT_ID;
+        hint.setAttribute("role", "status");
+        hint.textContent = "请框选区域";
+        document.body.append(hint);
+      }
+      return hint;
+    }
+
+    function paintRegion(region) {
+      clearBoxes();
+      if (!region) {
+        return;
+      }
+      var pageEl = document.querySelector('.page[data-page-number="' + region[0] + '"]');
+      if (!pageEl) {
+        return;
+      }
+      var box = document.createElement("div");
+      box.className = REGION_BOX_CLASS;
+      layoutBox(box, region[1], region[3], region[2], region[4]);
+      pageEl.append(box);
+    }
+
+    function setSelecting(on) {
+      selecting = on;
+      document.documentElement.classList.toggle("kk-region-selecting", on);
+      if (document.body) {
+        document.body.classList.toggle("kk-region-selecting", on);
+      }
+      if (on) {
+        ensureHint();
+      }
+    }
+
+    function startSelect() {
+      drag = null;
+      lastRegion = null;
+      clearBoxes();
+      setSelecting(true);
+    }
+
+    function cancelSelect() {
+      drag = null;
+      lastRegion = null;
+      clearBoxes();
+      setSelecting(false);
+    }
+
+    function finishDrag(clientX, clientY) {
+      if (!drag) {
+        return;
+      }
+      var pdf = cssToPdf(drag.pageEl, clientX, clientY);
+      var x0 = Math.min(drag.startX, pdf.x);
+      var x1 = Math.max(drag.startX, pdf.x);
+      var y0 = Math.min(drag.startY, pdf.y);
+      var y1 = Math.max(drag.startY, pdf.y);
+      var scale = getScaleFactor(drag.pageEl);
+      if ((x1 - x0) * scale < MIN_BOX_PX || (y1 - y0) * scale < MIN_BOX_PX) {
+        drag.box.remove();
+        drag = null;
+        return;
+      }
+      lastRegion = [drag.page, round2(x0), round2(x1), round2(y0), round2(y1)];
+      layoutBox(drag.box, lastRegion[1], lastRegion[3], lastRegion[2], lastRegion[4]);
+      drag = null;
+      try {
+        parent.postMessage({
+          type: REGION_SELECTED,
+          data: [lastRegion]
+        }, "*");
+      } catch (e) {}
+    }
+
+    document.addEventListener("pointerdown", function (event) {
+      if (!selecting || event.button !== 0) {
+        return;
+      }
+      var pageEl = event.target && event.target.closest && event.target.closest("#viewer .page");
+      if (!pageEl) {
+        return;
+      }
+      event.preventDefault();
+      var pdf = cssToPdf(pageEl, event.clientX, event.clientY);
+      clearBoxes();
+      var box = document.createElement("div");
+      box.className = REGION_BOX_CLASS;
+      layoutBox(box, pdf.x, pdf.y, pdf.x, pdf.y);
+      pageEl.append(box);
+      drag = {
+        pageEl: pageEl,
+        page: pageNumberOf(pageEl),
+        startX: pdf.x,
+        startY: pdf.y,
+        box: box
+      };
+    });
+
+    window.addEventListener("pointermove", function (event) {
+      if (!drag) {
+        return;
+      }
+      event.preventDefault();
+      var pdf = cssToPdf(drag.pageEl, event.clientX, event.clientY);
+      layoutBox(drag.box, drag.startX, drag.startY, pdf.x, pdf.y);
+    });
+
+    window.addEventListener("pointerup", function (event) {
+      if (!drag) {
+        return;
+      }
+      finishDrag(event.clientX, event.clientY);
+    });
+
+    window.addEventListener("pointercancel", function () {
+      if (!drag) {
+        return;
+      }
+      drag.box.remove();
+      drag = null;
+    });
+
+    window.addEventListener("message", function (event) {
+      if (event.source !== window.parent) {
+        return;
+      }
+      var msg = event.data;
+      if (!msg || !msg.type) {
+        return;
+      }
+      if (msg.type === REGION_START) {
+        startSelect();
+        return;
+      }
+      if (msg.type === REGION_CANCEL) {
+        cancelSelect();
+      }
+    });
+
+    if (app.eventBus) {
+      app.eventBus.on("pagerendered", function (evt) {
+        if (!lastRegion || !evt || evt.pageNumber !== lastRegion[0]) {
+          return;
+        }
+        paintRegion(lastRegion);
+      });
+    }
+  }
 })();

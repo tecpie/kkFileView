@@ -159,7 +159,8 @@ html.kk-compact #viewsManagerToggleButton {
   transition: width 0.18s ease, padding 0.18s ease, gap 0.18s ease, box-shadow 0.18s ease;
 }
 
-html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible, .toggled) {
+html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible, .toggled),
+html.kk-compact.kk-near-left #viewsManagerToggleButton {
   width: auto;
   min-width: 36px;
   padding: 0 12px 0 10px;
@@ -183,7 +184,8 @@ html.kk-compact #viewsManagerToggleButton > span {
   white-space: nowrap;
 }
 
-html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible, .toggled) > span {
+html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible, .toggled) > span,
+html.kk-compact.kk-near-left #viewsManagerToggleButton > span {
   display: inline !important;
   overflow: visible !important;
 }
@@ -716,7 +718,53 @@ html.kk-compact #kkToolsPanel #secondaryToolbar {
   #kkBottomNav,
   #kkToolsFab,
   #kkToolsPanel,
-  #viewsManagerToggleButton {
+  #viewsManagerToggleButton,
+  #kkRegionHint,
+  .kk-region-box {
     display: none !important;
   }
+}
+
+html.kk-region-selecting,
+html.kk-region-selecting body,
+html.kk-region-selecting #viewerContainer,
+html.kk-region-selecting .page {
+  cursor: crosshair !important;
+  user-select: none !important;
+}
+
+html.kk-region-selecting .textLayer,
+html.kk-region-selecting .annotationLayer,
+html.kk-region-selecting .annotationEditorLayer {
+  pointer-events: none !important;
+}
+
+#kkRegionHint {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10040;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(26, 23, 20, 0.12);
+  background: #fff;
+  color: #1a1714;
+  box-shadow: 0 6px 18px rgba(26, 23, 20, 0.12);
+  font: 600 12px/1.4 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  pointer-events: none;
+}
+
+html.kk-region-selecting #kkRegionHint {
+  display: block;
+}
+
+.kk-region-box {
+  position: absolute;
+  z-index: 8;
+  box-sizing: border-box;
+  pointer-events: none;
+  border: 1.5px solid #2563eb;
+  background: rgba(37, 99, 235, 0.16);
 }
