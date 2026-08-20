@@ -52,7 +52,7 @@
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
-    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=zh-cn-toolbar-8&file=" + encodeURIComponent(url);
+    var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=zh-cn-toolbar-20&file=" + encodeURIComponent(url);
 	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
     var parentParams = new URLSearchParams(window.location.search);

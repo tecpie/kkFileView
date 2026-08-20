@@ -134,6 +134,90 @@
         setOpen(false);
       }
     });
+
+    bindEdgeReveal();
+  }
+
+  var edgeRevealBound = false;
+
+  function bindEdgeReveal() {
+    if (edgeRevealBound) {
+      return;
+    }
+    var toggle = document.getElementById("viewsManagerToggleButton");
+    var nav = document.getElementById("kkBottomNav");
+    if (!toggle || !nav) {
+      return;
+    }
+    edgeRevealBound = true;
+
+    var hideLeftTimer = 0;
+    var hideBottomTimer = 0;
+    var nearLeft = 72;
+    var hideDelay = 180;
+
+    function setNear(side, on) {
+      document.documentElement.classList.toggle("kk-near-" + side, on);
+      if (document.body) {
+        document.body.classList.toggle("kk-near-" + side, on);
+      }
+    }
+
+    function sidebarOpen() {
+      var outer = document.getElementById("outerContainer");
+      return (outer && outer.classList.contains("viewsManagerOpen")) || toggle.classList.contains("toggled");
+    }
+
+    function findOpen() {
+      var findButton = document.getElementById("viewFindButton");
+      return !!(findButton && findButton.classList.contains("toggled"));
+    }
+
+    function updateFromPoint(x, y) {
+      var leftOn = x <= nearLeft || toggle.matches(":hover") || sidebarOpen();
+
+      if (leftOn) {
+        window.clearTimeout(hideLeftTimer);
+        setNear("left", true);
+      } else {
+        window.clearTimeout(hideLeftTimer);
+        hideLeftTimer = window.setTimeout(function () {
+          if (!sidebarOpen()) {
+            setNear("left", false);
+          }
+        }, hideDelay);
+      }
+    }
+
+    document.addEventListener("mousemove", function (event) {
+      updateFromPoint(event.clientX, event.clientY);
+    }, { passive: true });
+
+    document.documentElement.addEventListener("mouseleave", function () {
+      if (!sidebarOpen()) {
+        setNear("left", false);
+      }
+      if (!findOpen()) {
+        setNear("bottom", false);
+      }
+    });
+
+    toggle.addEventListener("focusin", function () {
+      setNear("left", true);
+    });
+
+    nav.addEventListener("mouseenter", function () {
+      window.clearTimeout(hideBottomTimer);
+      setNear("bottom", true);
+    });
+    nav.addEventListener("mouseleave", function () {
+      window.clearTimeout(hideBottomTimer);
+      hideBottomTimer = window.setTimeout(function () {
+        if (!findOpen()) {
+          setNear("bottom", false);
+        }
+      }, hideDelay);
+    });
   }
 
   if (document.readyState === "loading") {
@@ -141,4 +225,141 @@
   } else {
     relocate();
   }
+
+  var fittingWidePages = false;
+  var PDF_TO_CSS = 96 / 72;
+  var PAGE_H_CHROME = 20;
+  var SCALE_EPS = 0.0005;
+
+  function pageRawDisplayWidth(pageView) {
+    var viewport = pageView && pageView.viewport;
+    var dims = viewport && viewport.rawDims;
+    if (!dims) {
+      return 0;
+    }
+    var rot = viewport.rotation || 0;
+    return rot % 180 === 0 ? dims.pageWidth : dims.pageHeight;
+  }
+
+  function fitOnePageView(pageView, avail, globalFactor) {
+    if (!pageView || !pageView.pdfPage || !pageView.div) {
+      return false;
+    }
+    var rawW = pageRawDisplayWidth(pageView);
+    if (!rawW) {
+      return false;
+    }
+    var userUnit = pageView.viewport.userUnit || 1;
+    var widthAtGlobal = globalFactor * userUnit * rawW;
+    var div = pageView.div;
+    if (widthAtGlobal <= avail + 0.5) {
+      if (!div.style.getPropertyValue("--scale-factor")) {
+        return false;
+      }
+      div.style.removeProperty("--scale-factor");
+      return true;
+    }
+    var targetFactor = avail / (userUnit * rawW);
+    var currentFactor = div.style.getPropertyValue("--scale-factor");
+    if (currentFactor && Math.abs(parseFloat(currentFactor) - targetFactor) < SCALE_EPS) {
+      return false;
+    }
+    div.style.setProperty("--scale-factor", String(targetFactor));
+    return true;
+  }
+
+  function fitWidePageViews(app, relayout) {
+    var pdfViewer = app && app.pdfViewer;
+    if (fittingWidePages || !pdfViewer || !pdfViewer._pages || !pdfViewer._pages.length) {
+      return;
+    }
+    var avail = pdfViewer.container.clientWidth - PAGE_H_CHROME;
+    if (avail <= 0) {
+      return;
+    }
+    var globalScale = pdfViewer.currentScale;
+    if (!globalScale) {
+      return;
+    }
+    var globalFactor = globalScale * PDF_TO_CSS;
+    fittingWidePages = true;
+    var changed = false;
+    try {
+      pdfViewer._pages.forEach(function (pageView) {
+        if (fitOnePageView(pageView, avail, globalFactor)) {
+          changed = true;
+        }
+      });
+      if (changed && relayout) {
+        pdfViewer.update();
+      }
+    } finally {
+      fittingWidePages = false;
+    }
+  }
+
+  function bindFitWidePages(app) {
+    var timer = 0;
+    function schedule() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () {
+        fitWidePageViews(app, true);
+      }, 60);
+    }
+    function fitRenderedPage(evt) {
+      var pdfViewer = app.pdfViewer;
+      if (fittingWidePages || !pdfViewer || !evt || !evt.pageNumber) {
+        return;
+      }
+      var avail = pdfViewer.container.clientWidth - PAGE_H_CHROME;
+      var globalScale = pdfViewer.currentScale;
+      if (avail <= 0 || !globalScale) {
+        return;
+      }
+      fitOnePageView(pdfViewer._pages[evt.pageNumber - 1], avail, globalScale * PDF_TO_CSS);
+    }
+    if (app.eventBus) {
+      app.eventBus.on("pagesloaded", schedule);
+      app.eventBus.on("scalechanging", schedule);
+      app.eventBus.on("rotationchanging", schedule);
+      app.eventBus.on("pagerender", fitRenderedPage);
+      app.eventBus.on("pagerendered", function (evt) {
+        fitRenderedPage(evt);
+        schedule();
+      });
+    }
+    window.addEventListener("resize", schedule);
+    schedule();
+  }
+
+  function whenViewerReady(callback) {
+    var tries = 0;
+    function attach() {
+      var app = window.PDFViewerApplication;
+      if (!app || !app.initializedPromise) {
+        return false;
+      }
+      app.initializedPromise.then(function () {
+        callback(app);
+      });
+      return true;
+    }
+    if (attach()) {
+      return;
+    }
+    document.addEventListener("webviewerloaded", function () {
+      attach();
+    });
+    var timer = window.setInterval(function () {
+      tries += 1;
+      if (attach() || tries > 80) {
+        window.clearInterval(timer);
+      }
+    }, 100);
+  }
+
+  whenViewerReady(function (app) {
+    bindEdgeReveal();
+    bindFitWidePages(app);
+  });
 })();

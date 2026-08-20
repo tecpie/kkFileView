@@ -45,6 +45,38 @@ public class PdfViewerCompatibilityTests {
     }
 
     @Test
+    void shouldOverlaySidebarWithoutReflowingViewer() throws IOException {
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarCss.contains("viewsManagerOpen #viewerContainer"));
+        assertTrue(toolbarCss.contains("inset-inline-start: 0 !important"));
+    }
+
+    @Test
+    void shouldFitWidePdfPagesWithPerPageScaleFactor() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("fitOnePageView"));
+        assertTrue(toolbarJs.contains("--scale-factor"));
+        assertTrue(toolbarJs.contains("pagerendered"));
+        assertTrue(toolbarCss.contains("overflow-x: hidden"));
+        assertTrue(!toolbarCss.contains("kk-wide-page"));
+    }
+
+    @Test
+    void shouldDockChromeToEdgesUntilPointerApproaches() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("bindEdgeReveal"));
+        assertTrue(toolbarJs.contains("kk-near-"));
+        assertTrue(toolbarCss.contains("kk-near-left"));
+        assertTrue(toolbarCss.contains("kk-near-bottom"));
+        assertTrue(toolbarCss.contains("translateX(-50%)"));
+    }
+
+    @Test
     void shouldForwardShowtoolsQueryToPdfViewer() throws IOException {
         String pdfTemplate = readResource("/web/pdf.ftl");
 
