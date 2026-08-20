@@ -76,7 +76,7 @@ html.kk-compact #viewerContainer {
   top: 0;
   right: 0;
   bottom: 0;
-  padding-bottom: 64px;
+  padding-bottom: 44px;
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -191,18 +191,18 @@ html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible) {
 #kkBottomNav {
   position: fixed;
   left: 50%;
-  bottom: 14px;
+  bottom: 8px;
   transform: translateX(-50%);
   z-index: 10020;
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: var(--kk-chip-h);
-  padding: 3px;
+  gap: 2px;
+  height: 26px;
+  padding: 2px;
   border-radius: 999px;
   background: var(--kk-paper);
   box-shadow: var(--kk-shadow);
-  font: 600 12px/1 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 600 11px/1 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   opacity: var(--kk-idle-opacity);
   transition: opacity 0.16s ease;
 }
@@ -220,12 +220,19 @@ html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible) {
 #kkBottomNav #next,
 #kkBottomNav #viewFindButton {
   width: auto;
-  height: 30px;
+  height: 22px;
   aspect-ratio: unset;
-  padding: 0 10px;
-  gap: 5px;
+  padding: 0 7px;
+  gap: 3px;
   border-radius: 999px;
   color: var(--kk-ink);
+}
+
+#kkBottomNav #previous::before,
+#kkBottomNav #next::before,
+#kkBottomNav #viewFindButton::before {
+  width: 12px;
+  height: 12px;
 }
 
 #kkBottomNav #previous::before,
@@ -263,13 +270,13 @@ html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible) {
 }
 
 #kkBottomNav > .toolbarHorizontalGroup {
-  height: 30px;
+  height: 22px;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 #kkBottomNav .toolbarButtonWithContainer {
-  height: 30px;
+  height: 22px;
   width: auto;
   aspect-ratio: unset;
 }
@@ -279,20 +286,20 @@ html.kk-compact #viewsManagerToggleButton:is(:hover, :focus-visible) {
 }
 
 #kkBottomNav #pageNumber {
-  width: 2.8em;
-  height: 30px;
+  width: 2.4em;
+  height: 22px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--kk-fog);
   color: var(--kk-ink);
-  font: 600 12px/30px ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font: 600 11px/22px ui-monospace, "Cascadia Mono", Consolas, monospace;
   text-align: center;
 }
 
 #kkBottomNav #numPages.toolbarLabel {
-  padding: 0 6px 0 2px;
+  padding: 0 4px 0 1px;
   color: var(--kk-muted);
-  font: 600 12px/30px system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 600 11px/22px system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 html.kk-compact #kkBottomNav #findbar {
@@ -574,7 +581,7 @@ html.kk-compact #kkToolsPanel #secondaryToolbar {
   #kkBottomNav #next,
   #kkBottomNav #viewFindButton {
     padding: 0;
-    width: 30px;
+    width: 22px;
   }
 }
 
