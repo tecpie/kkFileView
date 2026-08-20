@@ -77,7 +77,7 @@ public class ConfigConstants {
     public static final String DEFAULT_PDF_DOWNLOAD_DISABLE = "true";
     public static final String DEFAULT_PDF_BOOKMARK_DISABLE = "true";
     public static final String DEFAULT_PDF_DISABLE_EDITING = "true";
-    public static final String DEFAULT_PDF_SIDEBAR_OPEN = "true";
+    public static final String DEFAULT_PDF_SIDEBAR_OPEN = "false";
     public static final String DEFAULT_PDF2_JPG_DPI = "105";
     public static final String DEFAULT_PDF_SMALL_DTI = "150";
     public static final String DEFAULT_PDF_MEDIUM_DPI = "120";
@@ -566,7 +566,7 @@ public class ConfigConstants {
     public void setpdfDisableEditing(String pdfDisableEditing) { setPdfDisableEditingValue(pdfDisableEditing); }
     public static void setPdfDisableEditingValue(String pdfDisableEditing) { ConfigConstants.pdfDisableEditing = pdfDisableEditing; }
 
-    @Value("${pdf.sidebar.open:true}")
+    @Value("${pdf.sidebar.open:false}")
     public void setPdfSidebarOpen(String pdfSidebarOpen) { setPdfSidebarOpenValue(pdfSidebarOpen); }
     public static void setPdfSidebarOpenValue(String pdfSidebarOpen) { ConfigConstants.pdfSidebarOpen = pdfSidebarOpen; }
 
