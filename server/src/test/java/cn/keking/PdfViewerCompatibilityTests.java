@@ -31,8 +31,89 @@ public class PdfViewerCompatibilityTests {
         String pdfTemplate = readResource("/web/pdf.ftl");
 
         assertTrue(pdfTemplate.contains("<#if \"true\" == pdfSidebarOpen>"));
-        assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=thumbs\";"));
+        assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=bookmarks\";"));
         assertTrue(pdfTemplate.contains("viewerUrl += \"&pagemode=none\";"));
+    }
+
+    @Test
+    void shouldLoadCompactToolbarAssetsInPdfViewer() throws IOException {
+        String viewerHtml = readResource("/static/pdfjs/web/viewer.html");
+
+        assertTrue(viewerHtml.contains("kk-toolbar.css"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js"));
+        assertTrue(viewerHtml.contains("kk-compact"));
+    }
+
+    @Test
+    void shouldOverlaySidebarWithoutReflowingViewer() throws IOException {
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarCss.contains("viewsManagerOpen #viewerContainer"));
+        assertTrue(toolbarCss.contains("inset-inline-start: 0 !important"));
+    }
+
+    @Test
+    void shouldFitWidePdfPagesWithPerPageScaleFactor() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("fitOnePageView"));
+        assertTrue(toolbarJs.contains("--scale-factor"));
+        assertTrue(toolbarJs.contains("pagerendered"));
+        assertTrue(toolbarCss.contains("overflow-x: hidden"));
+        assertTrue(!toolbarCss.contains("kk-wide-page"));
+    }
+
+    @Test
+    void shouldDockChromeToEdgesUntilPointerApproaches() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("bindEdgeReveal"));
+        assertTrue(toolbarJs.contains("kk-near-"));
+        assertTrue(toolbarCss.contains("kk-near-left"));
+        assertTrue(toolbarCss.contains("kk-near-bottom"));
+        assertTrue(toolbarCss.contains("translateX(-50%)"));
+    }
+
+    @Test
+    void shouldForwardShowtoolsQueryToPdfViewer() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(pdfTemplate.contains("parentParams.get('showtools')"));
+        assertTrue(pdfTemplate.contains("viewerUrl += \"&showtools=true\";"));
+    }
+
+    @Test
+    void shouldNotShowJpgPreviewSwitchOnPdfPage() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(!pdfTemplate.contains("jpg.svg"));
+        assertTrue(!pdfTemplate.contains("goForImage"));
+        assertTrue(!pdfTemplate.contains("img-preview"));
+    }
+
+    @Test
+    void shouldForwardRegionSelectMessagesBetweenHostAndViewer() throws IOException {
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(pdfTemplate.contains("kk-start-region-select"));
+        assertTrue(pdfTemplate.contains("kk-cancel-region-select"));
+        assertTrue(pdfTemplate.contains("kk-region-selected"));
+    }
+
+    @Test
+    void shouldEnableSingleRegionSelectOverlayOnPdfPages() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarJs.contains("kk-start-region-select"));
+        assertTrue(toolbarJs.contains("kk-cancel-region-select"));
+        assertTrue(toolbarJs.contains("kk-region-selected"));
+        assertTrue(toolbarJs.contains("请框选区域"));
+        assertTrue(toolbarJs.contains("--scale-factor"));
+        assertTrue(toolbarCss.contains("kk-region-selecting"));
+        assertTrue(toolbarCss.contains("crosshair"));
     }
 
     @Test
