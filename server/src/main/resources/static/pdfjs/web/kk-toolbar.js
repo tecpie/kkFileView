@@ -18,6 +18,23 @@
     return null;
   }
 
+  function stripAutoOpenPageMode() {
+    var rawHash = window.location.hash.replace(/^#/, "");
+    if (!rawHash || rawHash.indexOf("pagemode=") === -1) {
+      return;
+    }
+    var params = new URLSearchParams(rawHash);
+    var mode = params.get("pagemode");
+    if (!mode || mode === "none") {
+      return;
+    }
+    params.set("pagemode", "none");
+    var nextHash = params.toString();
+    history.replaceState(null, "", window.location.pathname + window.location.search + (nextHash ? "#" + nextHash : ""));
+  }
+
+  stripAutoOpenPageMode();
+
   function revealLabel(button, fallback) {
     if (!button) {
       return;
@@ -358,7 +375,55 @@
     }, 100);
   }
 
+  function collapseOutlineToTopLevel() {
+    var view = document.getElementById("outlinesView");
+    if (!view) {
+      return;
+    }
+    view.querySelectorAll(".treeItemToggler").forEach(function (el) {
+      el.classList.add("treeItemsHidden");
+    });
+  }
+
+  function bindKeepOutlineClosed(app) {
+    var userOpened = false;
+    var toggle = document.getElementById("viewsManagerToggleButton");
+    if (toggle) {
+      toggle.addEventListener("click", function () {
+        userOpened = true;
+      });
+    }
+
+    function closeAutoOpened() {
+      if (userOpened) {
+        return;
+      }
+      try {
+        if (window.PDFViewerApplicationOptions) {
+          window.PDFViewerApplicationOptions.set("sidebarViewOnLoad", 0);
+        }
+      } catch (e) {}
+      if (app.viewsManager && app.viewsManager.isOpen) {
+        app.viewsManager.close();
+      }
+    }
+
+    closeAutoOpened();
+    if (app.eventBus) {
+      app.eventBus.on("documentinit", closeAutoOpened);
+      app.eventBus.on("pagesloaded", closeAutoOpened);
+      app.eventBus.on("outlineloaded", function () {
+        collapseOutlineToTopLevel();
+        closeAutoOpened();
+      });
+    }
+    [0, 50, 200, 800].forEach(function (ms) {
+      window.setTimeout(closeAutoOpened, ms);
+    });
+  }
+
   whenViewerReady(function (app) {
+    bindKeepOutlineClosed(app);
     bindEdgeReveal();
     bindFitWidePages(app);
     bindRegionSelect(app);

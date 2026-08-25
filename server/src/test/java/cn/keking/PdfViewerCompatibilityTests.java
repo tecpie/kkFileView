@@ -77,6 +77,32 @@ public class PdfViewerCompatibilityTests {
     }
 
     @Test
+    void shouldKeepPdfOutlineClosedOnLoad() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String viewerHtml = readResource("/static/pdfjs/web/viewer.html");
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(toolbarJs.contains("stripAutoOpenPageMode"));
+        assertTrue(toolbarJs.contains("bindKeepOutlineClosed"));
+        assertTrue(toolbarJs.contains("collapseOutlineToTopLevel"));
+        assertTrue(toolbarJs.contains("pagemode"));
+        assertTrue(toolbarJs.contains("sidebarViewOnLoad"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-23"));
+        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-23"));
+        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-23"));
+    }
+
+    @Test
+    void shouldStylePdfOutlineAsCollapsedCard() throws IOException {
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarCss.contains("#outlinesView.treeView"));
+        assertTrue(toolbarCss.contains("max-height: min(72vh, 680px)"));
+        assertTrue(toolbarCss.contains("inset 2px 0 0 var(--kk-ink)"));
+        assertTrue(toolbarCss.contains("#viewsManagerHeader"));
+    }
+
+    @Test
     void shouldForwardShowtoolsQueryToPdfViewer() throws IOException {
         String pdfTemplate = readResource("/web/pdf.ftl");
 
