@@ -40,7 +40,18 @@
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url)) + "&key=${kkkey}";
     }
     var viewerUrl = baseUrl + "pdfjs/web/viewer.html?v=zh-cn-toolbar-21&file=" + encodeURIComponent(url);
-	var watermarkEncoded = encodeURIComponent('${watermarkTxt?js_string}');
+    var watermarkParams = {
+        watermarktxt: '${watermarkTxt?js_string}',
+        watermarkxspace: '${watermarkXSpace?js_string}',
+        watermarkyspace: '${watermarkYSpace?js_string}',
+        watermarkfont: '${watermarkFont?js_string}',
+        watermarkfontsize: '${watermarkFontsize?js_string}',
+        watermarkcolor: '${watermarkColor?js_string}',
+        watermarkalpha: '${watermarkAlpha?js_string}',
+        watermarkwidth: '${watermarkWidth?js_string}',
+        watermarkheight: '${watermarkHeight?js_string}',
+        watermarkangle: '${watermarkAngle?js_string}'
+    };
     var highlightEncoded = encodeURIComponent('${highlightall?js_string}');
     var parentParams = new URLSearchParams(window.location.search);
     var showtools = parentParams.get('showtools');
@@ -50,7 +61,9 @@
     viewerUrl += "&disabledownload=${pdfDownloadDisable}";
     viewerUrl += "&disablebookmark=${pdfBookmarkDisable}";
     viewerUrl += "&disableediting=${pdfDisableEditing}";
-    viewerUrl += "&watermarktxt=" + watermarkEncoded;
+    Object.keys(watermarkParams).forEach(function (name) {
+        viewerUrl += "&" + name + "=" + encodeURIComponent(watermarkParams[name]);
+    });
     viewerUrl += "&pdfhighlightall=" + highlightEncoded;
     if (showtools === 'true' || showtools === '1' || showtools === 'yes') {
         viewerUrl += "&showtools=true";
