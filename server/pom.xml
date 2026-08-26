@@ -65,6 +65,8 @@
             <artifactId>jodconverter-local</artifactId>
             <version>${jodconverter.version}</version>
         </dependency>
+        <!-- ofdrw is NOT on the main classpath (conflicts with PDFBox 3).
+             Jars are copied to ofd-runtime/ and loaded via an isolated ClassLoader. -->
 
         <!-- ========== Office文档处理 (POI相关) ========== -->
         <dependency>
@@ -326,6 +328,159 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <!-- ofdrw needs PDFBox 2; kkFileView uses PDFBox 3 on the main classpath.
+                         Copy an isolated runtime set and load it via URLClassLoader. -->
+                    <execution>
+                        <id>copy-ofd-runtime</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/ofd-runtime</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-converter</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-reader</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-core</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-pkg</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-gm</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-gv</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-layout</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-graphics2d</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ofdrw</groupId>
+                                    <artifactId>ofdrw-font</artifactId>
+                                    <version>2.3.9</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.pdfbox</groupId>
+                                    <artifactId>pdfbox</artifactId>
+                                    <version>2.0.27</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.pdfbox</groupId>
+                                    <artifactId>fontbox</artifactId>
+                                    <version>2.0.27</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>commons-logging</groupId>
+                                    <artifactId>commons-logging</artifactId>
+                                    <version>1.2</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.ujmp</groupId>
+                                    <artifactId>ujmp-core</artifactId>
+                                    <version>0.3.0</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.dom4j</groupId>
+                                    <artifactId>dom4j</artifactId>
+                                    <version>2.1.4</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>jaxen</groupId>
+                                    <artifactId>jaxen</artifactId>
+                                    <version>1.2.0</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.commons</groupId>
+                                    <artifactId>commons-compress</artifactId>
+                                    <version>1.26.2</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>commons-io</groupId>
+                                    <artifactId>commons-io</artifactId>
+                                    <version>2.16.1</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>net.lingala.zip4j</groupId>
+                                    <artifactId>zip4j</artifactId>
+                                    <version>2.11.5</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.pdfbox</groupId>
+                                    <artifactId>jbig2-imageio</artifactId>
+                                    <version>3.0.4</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itextpdf</groupId>
+                                    <artifactId>kernel</artifactId>
+                                    <version>7.2.6</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itextpdf</groupId>
+                                    <artifactId>io</artifactId>
+                                    <version>7.2.6</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itextpdf</groupId>
+                                    <artifactId>layout</artifactId>
+                                    <version>7.2.6</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itextpdf</groupId>
+                                    <artifactId>commons</artifactId>
+                                    <version>7.2.6</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itextpdf</groupId>
+                                    <artifactId>font-asian</artifactId>
+                                    <version>7.2.6</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.bouncycastle</groupId>
+                                    <artifactId>bcprov-jdk18on</artifactId>
+                                    <version>1.84</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.bouncycastle</groupId>
+                                    <artifactId>bcpkix-jdk18on</artifactId>
+                                    <version>1.84</version>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

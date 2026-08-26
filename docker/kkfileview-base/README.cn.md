@@ -13,7 +13,7 @@
 docker build --tag keking/kkfileview-base:5.0.0 .
 ```
 
-
+本基础镜像已安装文泉驿等中文字体（以及 `fonts/chinese`）。`/convert` 将 OFD 栅格化为 PDF 时依赖这些字体；若自建基础镜像时去掉中文字体，OFD 中文会显示为方框。
 
 ## 跨平台构建
 

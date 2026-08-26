@@ -343,6 +343,8 @@ public class FileHandlerService {
             cacheFileName = originFileName;
         } else if (type.equals(FileType.TIFF)) {
             cacheFileName = cacheFilePrefixName + ConfigConstants.getTifPreviewType();
+        } else if (type.equals(FileType.OFD)) {
+            cacheFileName = cacheFilePrefixName + "pdf";
         } else {
             cacheFileName = originFileName;
         }
