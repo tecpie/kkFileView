@@ -45,6 +45,11 @@
 
     // 添加加载状态管理
     let isLoading = false;
+    var luckysheetReady = false;
+    var pendingExcelHighlight = null;
+    var highlightReadySent = false;
+    var highlightPainting = false;
+    var lastHighlightKey = '';
 
 </script>
 <style>
@@ -121,6 +126,44 @@
         text-align: center;
     }
 
+    /*
+     * 宿主抽屉会裁切 iframe 底部约 40px+。
+     * 把整个 Luckysheet 上收，让 sheet 栏落在裁切线之上。
+     */
+    #luckysheet {
+        top: 0 !important;
+        bottom: auto !important;
+        height: calc(100% - 60px) !important;
+    }
+    #luckysheet-sheet-area {
+        z-index: 10050 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        bottom: 3px !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 31px !important;
+        background: #f0f0f0 !important;
+        border-top: 1px solid #c8c8c8 !important;
+        padding-left: 8px !important;
+        box-sizing: border-box !important;
+    }
+    #luckysheet-sheet-container,
+    #luckysheet-sheet-container-c {
+        display: inline-block !important;
+        max-width: none !important;
+        overflow: visible !important;
+    }
+    #luckysheet-grid-window-1 {
+        bottom: 34px !important;
+    }
+    /* 逐格上色时不依赖 Luckysheet 选区框 */
+    #luckysheet-cell-selected-boxs #luckysheet-cell-selected,
+    #luckysheet-cell-selected-boxs .luckysheet-cell-selected {
+        display: none !important;
+    }
+
 </style>
 <body>
 <!-- 添加加载遮罩层 -->
@@ -141,22 +184,10 @@
 
 <div id="lucky-mask-demo" style="position: absolute;z-index: 1000000;left: 0px;top: 0px;bottom: 0px;right: 0px; background: rgba(255, 255, 255, 0.8); text-align: center;font-size: 40px;align-items:center;justify-content: center;display: none;">加载中</div>
 
-<p style="text-align:center;">
-<div id="button-area" style="display: none;">
-    <label><button onclick="tiaozhuan()">跳转HTML预览</button></label>
-    <button id="confirm-button" onclick="print()">打印</button>
-</div>
-<div id="luckysheet" style="margin:0px;padding:0px;position:absolute;width:100%;left: 0px;top: 20px;bottom: 0px;outline: none;"></div>
+<div id="luckysheet" style="margin:0;padding:0;position:absolute;width:100%;left:0;top:0;outline:none;"></div>
 
 <script src="xlsx/luckyexcel.umd.js"></script>
 <script>
-    function tiaozhuan(){
-        var test = window.location.href;
-        test = test.replace(new RegExp("&officePreviewType=xlsx",("gm")),"");
-        test = test+'&officePreviewType=html';
-        window.location.href=test;
-    }
-
     var url = '${finalUrl}';
    	var kkagent = '${kkagent}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
@@ -189,7 +220,6 @@
             loadingOverlay.style.opacity = '0';
             setTimeout(() => {
                 loadingOverlay.style.display = 'none';
-                document.getElementById('button-area').style.display = 'block';
             }, 300);
         }
     }
@@ -323,37 +353,53 @@
         return new Promise((resolve, reject) => {
             requestAnimationFrame(() => {
                 try {
+                    installMutedEchoWorkers();
                     window.luckysheet.destroy();
                     window.luckysheet.create({
                         container: 'luckysheet',
                         lang: "zh",
                         showtoolbarConfig:{
-                            image: true,
-                            print: true,
-                            exportXlsx: true,
+                            image: false,
+                            print: false,
+                            exportXlsx: false,
                         },
-                        allowCopy: true, // 是否允许拷贝
-                showtoolbar:  ${xlsxshowtoolbar?string('true','false')},  // 是否显示工具栏
-                showinfobar: true, // 是否显示顶部信息栏
-                // myFolderUrl: "/",//作用：左上角<返回按钮的链接
-                showsheetbar: true, // 是否显示底部sheet页按钮
-                showstatisticBar: true, // 是否显示底部计数栏
-                sheetBottomConfig: true, // sheet页下方的添加行按钮和回到顶部按钮配置
-                allowEdit: ${(xlsxallowEdit!false)?string('true','false')},// 是否允许前台编辑
-                enableAddRow: false, // 允许增加行
-                enableAddCol: false, // 允许增加列
-                userInfo: false, // 右上角的用户信息展示样式
-                showRowBar: true, // 是否显示行号区域
-                showColumnBar: false, // 是否显示列号区域
-                sheetFormulaBar: false, // 是否显示公式栏
-                enableAddBackTop: true,//返回头部按钮
-                forceCalculation: false, //下面是导出插件 默认关闭
+                        allowCopy: true,
+                        showtoolbar: ${xlsxshowtoolbar?string('true','false')},
+                        showinfobar: false,
+                        showsheetbar: true,
+                        showstatisticBar: false,
+                        allowEdit: ${(xlsxallowEdit!false)?string('true','false')},
+                        enableAddRow: false,
+                        enableAddCol: false,
+                        userInfo: false,
+                        showRowBar: true,
+                        showColumnBar: true,
+                        sheetFormulaBar: false,
+                        enableAddBackTop: false,
+                        forceCalculation: false,
                         data: exportJson.sheets,
                         title: exportJson.info.name,
-                        userInfo: exportJson.info.name.creator,
-                        // 添加加载完成的回调
                         hook: {
                             workbookCreateAfter: function() {
+                                luckysheetReady = true;
+                                try {
+                                    if (typeof window.luckysheet.resize === 'function') {
+                                        window.luckysheet.resize();
+                                    }
+                                } catch (e) {}
+                                // 等表格首屏稳定后再高亮/通知宿主，避免与初始化抢 Worker
+                                setTimeout(function () {
+                                    if (pendingExcelHighlight) {
+                                        applyExcelHighlight(pendingExcelHighlight);
+                                        pendingExcelHighlight = null;
+                                    }
+                                    try {
+                                        if (!highlightReadySent && window.parent && window.parent !== window) {
+                                            highlightReadySent = true;
+                                            window.parent.postMessage({ type: 'kk-highlight-ready' }, '*');
+                                        }
+                                    } catch (e) {}
+                                }, 400);
                                 resolve();
                             }
                         }
@@ -382,6 +428,216 @@
             // 可以在这里添加取消加载的逻辑
             console.log('用户取消了加载');
         }
+    });
+
+    function normalizeExcelRects(msg) {
+        // 宿主（ai-vue）与 PDF viewer 统一用 data；兼容旧 rects
+        var raw = msg.data != null ? msg.data : msg.rects;
+        if (!raw) {
+            return null;
+        }
+        if (!Array.isArray(raw) || raw.length === 0) {
+            return null;
+        }
+        if (typeof raw[0] === 'number') {
+            return [raw];
+        }
+        if (Array.isArray(raw[0])) {
+            return raw;
+        }
+        return null;
+    }
+
+    var lastPaintedRange = null;
+    var EXCEL_HIGHLIGHT_BG = '#ffe58f';
+
+    /**
+     * Luckysheet 用 data: URL Worker 做 flowdata 深拷贝；每次改格子都会
+     * new Worker，Network 里刷 data:text/javascript 且卡顿。
+     * 预览场景改为同步深拷贝即可（LuckyExcel 仍用真实 worker 文件）。
+     */
+    function installMutedEchoWorkers() {
+        if (window.__kkMutedEchoWorkers || !window.Worker) {
+            return;
+        }
+        var OrigWorker = window.Worker;
+        function MuteWorker(scriptUrl) {
+            if (typeof scriptUrl === 'string' && scriptUrl.indexOf('data:text/javascript') === 0) {
+                return {
+                    onmessage: null,
+                    postMessage: function (data) {
+                        var cloned;
+                        try {
+                            cloned = window.jQuery
+                                ? window.jQuery.extend(true, [], data)
+                                : JSON.parse(JSON.stringify(data));
+                        } catch (e) {
+                            cloned = data;
+                        }
+                        if (typeof this.onmessage === 'function') {
+                            this.onmessage({ data: cloned });
+                        }
+                    },
+                    terminate: function () {}
+                };
+            }
+            return arguments.length > 1
+                ? new OrigWorker(scriptUrl, arguments[1])
+                : new OrigWorker(scriptUrl);
+        }
+        MuteWorker.prototype = OrigWorker.prototype;
+        window.Worker = MuteWorker;
+        window.__kkMutedEchoWorkers = true;
+    }
+
+    function withMutedEchoWorkers(fn) {
+        installMutedEchoWorkers();
+        fn();
+    }
+
+    function clearExcelCellHighlight() {
+        if (!lastPaintedRange || !window.luckysheet) {
+            return;
+        }
+        try {
+            if (typeof window.luckysheet.setRangeFormat === 'function') {
+                withMutedEchoWorkers(function () {
+                    window.luckysheet.setRangeFormat('bg', null, {
+                        range: lastPaintedRange
+                    });
+                });
+            }
+        } catch (err) {}
+        lastPaintedRange = null;
+    }
+
+    function buildHighlightKey(sheetOrder, rowStart, rowEnd, colStart, colEnd) {
+        return sheetOrder + '|' + rowStart + '|' + rowEnd + '|' + colStart + '|' + colEnd;
+    }
+
+    function applyExcelHighlight(msg) {
+        if (!window.luckysheet || highlightPainting) {
+            return;
+        }
+        var rects = normalizeExcelRects(msg);
+        var rect = (rects && rects[0]) || null;
+        var sheetOrder = (msg.sheetIndex != null ? msg.sheetIndex : (rect ? rect[0] : 1)) - 1;
+        var rowStart = (msg.rowStart != null ? msg.rowStart : (rect ? rect[1] : 1)) - 1;
+        var rowEnd = (msg.rowEnd != null ? msg.rowEnd : (rect ? rect[2] : rowStart + 1)) - 1;
+        var colStart = (msg.colStart != null ? msg.colStart : (rect ? rect[3] : 1)) - 1;
+        var colEnd = (msg.colEnd != null ? msg.colEnd : (rect ? rect[4] : colStart + 1)) - 1;
+        if (sheetOrder < 0) {
+            sheetOrder = 0;
+        }
+        if (rowStart < 0) {
+            rowStart = 0;
+        }
+        if (rowEnd < rowStart) {
+            rowEnd = rowStart;
+        }
+        if (colStart < 0) {
+            colStart = 0;
+        }
+        if (colEnd < colStart) {
+            colEnd = colStart;
+        }
+        if (colStart === 0 && colEnd === 0 && !(rect && Number(rect[3]) > 0)) {
+            colEnd = 15;
+        }
+        var highlightKey = buildHighlightKey(sheetOrder, rowStart, rowEnd, colStart, colEnd);
+        if (highlightKey === lastHighlightKey) {
+            return;
+        }
+        /*
+         * 整块 range 只调 1 次 setRangeFormat（对齐 RAGFlow 的行/列范围），
+         * 并 mute echo Worker，避免 Network 刷屏与加载卡顿。
+         */
+
+        function paintRange() {
+            highlightPainting = true;
+            try {
+                if (typeof window.luckysheet.setRangeFormat !== 'function') {
+                    return;
+                }
+                withMutedEchoWorkers(function () {
+                    if (lastPaintedRange) {
+                        window.luckysheet.setRangeFormat('bg', null, {
+                            range: lastPaintedRange
+                        });
+                    }
+                    var range = { row: [rowStart, rowEnd], column: [colStart, colEnd] };
+                    window.luckysheet.setRangeFormat('bg', EXCEL_HIGHLIGHT_BG, {
+                        range: range
+                    });
+                    lastPaintedRange = {
+                        row: [rowStart, rowEnd],
+                        column: [colStart, colEnd]
+                    };
+                });
+                lastHighlightKey = highlightKey;
+                if (msg.scroll !== false && typeof window.luckysheet.scroll === 'function') {
+                    window.luckysheet.scroll({
+                        targetRow: rowStart,
+                        targetColumn: colStart
+                    });
+                }
+            } catch (err) {
+                console.warn('applyExcelHighlight paint failed', err);
+            } finally {
+                highlightPainting = false;
+            }
+        }
+
+        function runPaint() {
+            var needSwitch = true;
+            try {
+                if (typeof window.luckysheet.getSheet === 'function') {
+                    var cur = window.luckysheet.getSheet();
+                    needSwitch = !cur || cur.order !== sheetOrder;
+                }
+            } catch (e) {}
+            if (needSwitch && typeof window.luckysheet.setSheetActive === 'function') {
+                window.luckysheet.setSheetActive(sheetOrder, {
+                    success: function () {
+                        setTimeout(paintRange, 30);
+                    }
+                });
+            } else {
+                paintRange();
+            }
+        }
+
+        try {
+            runPaint();
+        } catch (err) {
+            console.warn('applyExcelHighlight failed', err);
+            paintRange();
+        }
+    }
+
+    window.addEventListener('message', function (event) {
+        var msg = event.data;
+        if (!msg || msg.type !== 'kk-set-highlight') {
+            return;
+        }
+        // 宿主通常不带 mode；仅在明确声明非 excel 时忽略
+        if (msg.mode && msg.mode !== 'excel') {
+            return;
+        }
+        if (!luckysheetReady) {
+            pendingExcelHighlight = msg;
+            return;
+        }
+        applyExcelHighlight(msg);
+    });
+
+    window.addEventListener('resize', function () {
+        if (!luckysheetReady || !window.luckysheet || typeof window.luckysheet.resize !== 'function') {
+            return;
+        }
+        try {
+            window.luckysheet.resize();
+        } catch (e) {}
     });
 </script>
 </body>

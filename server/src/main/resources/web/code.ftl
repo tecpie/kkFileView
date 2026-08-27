@@ -138,7 +138,27 @@
      */
     window.onload = function () {
         initWaterMark();
+        try {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'kk-highlight-ready' }, '*');
+            }
+        } catch (e) {}
     }
+
+    window.addEventListener('message', function (event) {
+        var msg = event.data;
+        if (!msg || msg.type !== 'kk-set-highlight') {
+            return;
+        }
+        if (msg.mode && msg.mode !== 'text') {
+            return;
+        }
+        var keyword = msg.text || '';
+        if (!keyword) {
+            return;
+        }
+        DHTMLpagenation(s, keyword, Length, page, txt);
+    });
 </script>
 </#if>
 </body>

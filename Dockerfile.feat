@@ -1,0 +1,3 @@
+# Rebuild runtime image with feat-built jar (includes Excel locate + PDF toolbar + OFD).
+FROM registry.cn-hangzhou.aliyuncs.com/tecpie/kkfileview:latest
+COPY server/target/kkFileView-5.0.2.jar /opt/kkFileView-5.0.1/bin/kkFileView-5.0.1.jar
