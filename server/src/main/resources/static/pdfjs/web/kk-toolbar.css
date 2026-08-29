@@ -163,34 +163,51 @@ html.kk-compact #viewsManagerContent {
   flex: 1 1 auto;
   min-height: 0;
   max-height: 100%;
-  padding: 0 2px 0 0;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(26, 23, 20, 0.35) transparent !important;
-  -ms-overflow-style: auto !important;
-}
-
-html.kk-compact #viewsManagerContent::-webkit-scrollbar {
-  width: 8px !important;
-  height: 8px !important;
-  display: block !important;
-}
-
-html.kk-compact #viewsManagerContent::-webkit-scrollbar-thumb {
-  background: rgba(26, 23, 20, 0.28);
-  border-radius: 999px;
-}
-
-html.kk-compact #viewsManagerContent::-webkit-scrollbar-track {
-  background: transparent;
+  padding: 0;
+  /* Parent clips; the outline tree itself scrolls with a visible bar. */
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
 }
 
 html.kk-compact #outlinesView.treeView {
-  padding: 6px 8px 10px 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 6px 4px 10px 10px;
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   /* Keep PDF.js float layout so outline link clicks still navigate. */
-  overflow: visible;
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  scrollbar-width: auto !important;
+  scrollbar-color: #78716c #ece7df !important;
+  -ms-overflow-style: scrollbar !important;
+  scrollbar-gutter: stable;
+}
+
+html.kk-compact #outlinesView.treeView::-webkit-scrollbar {
+  width: 12px !important;
+  height: 12px !important;
+  display: block !important;
+  background: #ece7df !important;
+}
+
+html.kk-compact #outlinesView.treeView::-webkit-scrollbar-track {
+  background: #ece7df !important;
+  border-radius: 0;
+}
+
+html.kk-compact #outlinesView.treeView::-webkit-scrollbar-thumb {
+  background: #78716c !important;
+  border: 2px solid #ece7df;
+  border-radius: 999px;
+  min-height: 40px;
+}
+
+html.kk-compact #outlinesView.treeView::-webkit-scrollbar-thumb:hover {
+  background: #57534e !important;
 }
 
 html.kk-compact #outlinesView.withNesting > .treeItem {
