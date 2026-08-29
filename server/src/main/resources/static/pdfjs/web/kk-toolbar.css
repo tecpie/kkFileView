@@ -80,8 +80,15 @@ html.kk-compact #viewerContainer {
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
+  /* Hide page scrollbar only; outline panel keeps its own. */
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+html.kk-compact #viewerContainer::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 
 html.kk-compact #outerContainer.viewsManagerOpen #viewerContainer:not(.pdfPresentationMode),
@@ -94,22 +101,6 @@ html.kk-compact body,
 html.kk-compact #outerContainer,
 html.kk-compact #mainContainer {
   overflow: hidden !important;
-}
-
-html.kk-compact #viewerContainer::-webkit-scrollbar,
-html.kk-compact #viewsManagerContent::-webkit-scrollbar,
-html.kk-compact #outlinesView::-webkit-scrollbar,
-html.kk-compact #thumbnailsView::-webkit-scrollbar,
-html.kk-compact *::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
-}
-
-html.kk-compact,
-html.kk-compact * {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
 }
 
 html.kk-compact #toolbarContainer #loadingBar {
@@ -138,7 +129,8 @@ html.kk-compact #viewsManager {
   flex-direction: column;
   align-items: stretch;
   width: min(300px, calc(100vw - 24px));
-  height: auto !important;
+  /* Fixed height so the inner list can scroll with a visible scrollbar. */
+  height: min(72vh, 680px) !important;
   max-height: min(72vh, 680px);
   padding: 6px 0 8px;
   border-radius: 12px;
@@ -170,14 +162,35 @@ html.kk-compact #viewsManagerContent {
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  max-height: 100%;
+  padding: 0 2px 0 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(26, 23, 20, 0.35) transparent !important;
+  -ms-overflow-style: auto !important;
+}
+
+html.kk-compact #viewsManagerContent::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  display: block !important;
+}
+
+html.kk-compact #viewsManagerContent::-webkit-scrollbar-thumb {
+  background: rgba(26, 23, 20, 0.28);
+  border-radius: 999px;
+}
+
+html.kk-compact #viewsManagerContent::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 html.kk-compact #outlinesView.treeView {
-  padding: 6px 10px 10px;
+  padding: 6px 8px 10px 10px;
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  /* Keep PDF.js float layout so outline link clicks still navigate. */
+  overflow: visible;
 }
 
 html.kk-compact #outlinesView.withNesting > .treeItem {
@@ -189,19 +202,11 @@ html.kk-compact #outlinesView.withNesting .treeItem > .treeItems {
 }
 
 html.kk-compact #outlinesView .treeItem {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: block;
   margin: 0;
 }
 
-html.kk-compact #outlinesView .treeItem > .treeItems {
-  flex: 1 0 100%;
-}
-
 html.kk-compact #outlinesView .treeItem > a {
-  flex: 1 1 0;
-  min-width: 0;
   display: block;
   min-height: 32px;
   margin: 1px 0;
@@ -212,6 +217,10 @@ html.kk-compact #outlinesView .treeItem > a {
   font-weight: 600;
   line-height: 18px !important;
   white-space: normal;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1;
 }
 
 html.kk-compact #outlinesView .treeItem:not(:has(> .treeItemToggler)) > a {
@@ -243,11 +252,12 @@ html.kk-compact #outlinesView .treeItem.selected > a {
 }
 
 html.kk-compact #outlinesView.withNesting .treeItemToggler {
-  float: none;
-  flex: 0 0 18px;
+  float: var(--inline-start, left);
+  position: relative;
   display: block;
   width: 18px;
-  height: 30px;
+  height: 0;
+  z-index: 2;
 }
 
 html.kk-compact #outlinesView.withNesting .treeItemToggler::before {
@@ -257,25 +267,6 @@ html.kk-compact #outlinesView.withNesting .treeItemToggler::before {
   height: 10px;
   inset-inline-end: auto;
   background-color: #78716c;
-}
-
-html.kk-compact #viewsManagerContent,
-html.kk-compact #outlinesView {
-  scrollbar-width: thin !important;
-  overflow-x: hidden !important;
-}
-
-html.kk-compact #viewsManagerContent::-webkit-scrollbar,
-html.kk-compact #outlinesView::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
-  display: block !important;
-}
-
-html.kk-compact #viewsManagerContent::-webkit-scrollbar-thumb,
-html.kk-compact #outlinesView::-webkit-scrollbar-thumb {
-  background: rgba(26, 23, 20, 0.22);
-  border-radius: 999px;
 }
 
 html.kk-compact #viewsManagerToggleButton {

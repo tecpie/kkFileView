@@ -87,9 +87,10 @@ public class PdfViewerCompatibilityTests {
         assertTrue(toolbarJs.contains("collapseOutlineToTopLevel"));
         assertTrue(toolbarJs.contains("pagemode"));
         assertTrue(toolbarJs.contains("sidebarViewOnLoad"));
-        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-23"));
-        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-23"));
-        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-23"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-24"));
+        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-24"));
+        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-24"));
+        assertTrue(toolbarJs.contains("bindOutlineNavigation"));
     }
 
     @Test
@@ -100,6 +101,9 @@ public class PdfViewerCompatibilityTests {
         assertTrue(toolbarCss.contains("max-height: min(72vh, 680px)"));
         assertTrue(toolbarCss.contains("inset 2px 0 0 var(--kk-ink)"));
         assertTrue(toolbarCss.contains("#viewsManagerHeader"));
+        assertTrue(toolbarCss.contains("scrollbar-width: thin"));
+        assertTrue(toolbarCss.contains("#viewsManagerContent::-webkit-scrollbar"));
+        assertTrue(!toolbarCss.contains("html.kk-compact *::-webkit-scrollbar"));
     }
 
     @Test

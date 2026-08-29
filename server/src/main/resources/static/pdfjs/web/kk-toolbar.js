@@ -422,8 +422,48 @@
     });
   }
 
+  function bindOutlineNavigation(app) {
+    var view = document.getElementById("outlinesView");
+    var linkService = app && (app.pdfLinkService || app.linkService);
+    if (!view || !linkService || view.dataset.kkOutlineNav === "1") {
+      return;
+    }
+    view.dataset.kkOutlineNav = "1";
+    // Capture phase so we still navigate even when legacy onclick returns false.
+    view.addEventListener("click", function (event) {
+      if (event.target.closest && event.target.closest(".treeItemToggler")) {
+        return;
+      }
+      var anchor = event.target.closest ? event.target.closest("a") : null;
+      if (!anchor || !view.contains(anchor)) {
+        return;
+      }
+      var href = anchor.getAttribute("href") || "";
+      if (!href || href.charAt(0) !== "#") {
+        return;
+      }
+      var hash = href.slice(1);
+      if (!hash || typeof linkService.setHash !== "function") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        var treeItem = anchor.parentNode;
+        if (treeItem && treeItem.classList && treeItem.classList.contains("treeItem")) {
+          view.querySelectorAll(".treeItem.selected").forEach(function (el) {
+            el.classList.remove("selected");
+          });
+          treeItem.classList.add("selected");
+        }
+        linkService.setHash(hash);
+      } catch (err) {}
+    }, true);
+  }
+
   whenViewerReady(function (app) {
     bindKeepOutlineClosed(app);
+    bindOutlineNavigation(app);
     bindEdgeReveal();
     bindFitWidePages(app);
     bindRegionSelect(app);
