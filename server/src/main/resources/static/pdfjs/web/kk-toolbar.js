@@ -18,6 +18,23 @@
     return null;
   }
 
+  function stripAutoOpenPageMode() {
+    var rawHash = window.location.hash.replace(/^#/, "");
+    if (!rawHash || rawHash.indexOf("pagemode=") === -1) {
+      return;
+    }
+    var params = new URLSearchParams(rawHash);
+    var mode = params.get("pagemode");
+    if (!mode || mode === "none") {
+      return;
+    }
+    params.set("pagemode", "none");
+    var nextHash = params.toString();
+    history.replaceState(null, "", window.location.pathname + window.location.search + (nextHash ? "#" + nextHash : ""));
+  }
+
+  stripAutoOpenPageMode();
+
   function revealLabel(button, fallback) {
     if (!button) {
       return;
@@ -358,7 +375,95 @@
     }, 100);
   }
 
+  function collapseOutlineToTopLevel() {
+    var view = document.getElementById("outlinesView");
+    if (!view) {
+      return;
+    }
+    view.querySelectorAll(".treeItemToggler").forEach(function (el) {
+      el.classList.add("treeItemsHidden");
+    });
+  }
+
+  function bindKeepOutlineClosed(app) {
+    var userOpened = false;
+    var toggle = document.getElementById("viewsManagerToggleButton");
+    if (toggle) {
+      toggle.addEventListener("click", function () {
+        userOpened = true;
+      });
+    }
+
+    function closeAutoOpened() {
+      if (userOpened) {
+        return;
+      }
+      try {
+        if (window.PDFViewerApplicationOptions) {
+          window.PDFViewerApplicationOptions.set("sidebarViewOnLoad", 0);
+        }
+      } catch (e) {}
+      if (app.viewsManager && app.viewsManager.isOpen) {
+        app.viewsManager.close();
+      }
+    }
+
+    closeAutoOpened();
+    if (app.eventBus) {
+      app.eventBus.on("documentinit", closeAutoOpened);
+      app.eventBus.on("pagesloaded", closeAutoOpened);
+      app.eventBus.on("outlineloaded", function () {
+        collapseOutlineToTopLevel();
+        closeAutoOpened();
+      });
+    }
+    [0, 50, 200, 800].forEach(function (ms) {
+      window.setTimeout(closeAutoOpened, ms);
+    });
+  }
+
+  function bindOutlineNavigation(app) {
+    var view = document.getElementById("outlinesView");
+    var linkService = app && (app.pdfLinkService || app.linkService);
+    if (!view || !linkService || view.dataset.kkOutlineNav === "1") {
+      return;
+    }
+    view.dataset.kkOutlineNav = "1";
+    // Capture phase so we still navigate even when legacy onclick returns false.
+    view.addEventListener("click", function (event) {
+      if (event.target.closest && event.target.closest(".treeItemToggler")) {
+        return;
+      }
+      var anchor = event.target.closest ? event.target.closest("a") : null;
+      if (!anchor || !view.contains(anchor)) {
+        return;
+      }
+      var href = anchor.getAttribute("href") || "";
+      if (!href || href.charAt(0) !== "#") {
+        return;
+      }
+      var hash = href.slice(1);
+      if (!hash || typeof linkService.setHash !== "function") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        var treeItem = anchor.parentNode;
+        if (treeItem && treeItem.classList && treeItem.classList.contains("treeItem")) {
+          view.querySelectorAll(".treeItem.selected").forEach(function (el) {
+            el.classList.remove("selected");
+          });
+          treeItem.classList.add("selected");
+        }
+        linkService.setHash(hash);
+      } catch (err) {}
+    }, true);
+  }
+
   whenViewerReady(function (app) {
+    bindKeepOutlineClosed(app);
+    bindOutlineNavigation(app);
     bindEdgeReveal();
     bindFitWidePages(app);
     bindRegionSelect(app);

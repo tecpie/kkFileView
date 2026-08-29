@@ -77,6 +77,41 @@ public class PdfViewerCompatibilityTests {
     }
 
     @Test
+    void shouldKeepPdfOutlineClosedOnLoad() throws IOException {
+        String toolbarJs = readResource("/static/pdfjs/web/kk-toolbar.js");
+        String viewerHtml = readResource("/static/pdfjs/web/viewer.html");
+        String pdfTemplate = readResource("/web/pdf.ftl");
+
+        assertTrue(toolbarJs.contains("stripAutoOpenPageMode"));
+        assertTrue(toolbarJs.contains("bindKeepOutlineClosed"));
+        assertTrue(toolbarJs.contains("collapseOutlineToTopLevel"));
+        assertTrue(toolbarJs.contains("pagemode"));
+        assertTrue(toolbarJs.contains("sidebarViewOnLoad"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-28"));
+        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-28"));
+        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-28"));
+        assertTrue(toolbarJs.contains("bindOutlineNavigation"));
+    }
+
+    @Test
+    void shouldStylePdfOutlineAsCollapsedCard() throws IOException {
+        String toolbarCss = readResource("/static/pdfjs/web/kk-toolbar.css");
+
+        assertTrue(toolbarCss.contains("#outlinesView.treeView"));
+        assertTrue(toolbarCss.contains("max-height: min(72vh, 680px)"));
+        assertTrue(toolbarCss.contains("#viewsManagerHeader"));
+        assertTrue(!toolbarCss.contains("inset 2px 0 0 var(--kk-ink)"));
+        assertTrue(!toolbarCss.contains("html.kk-compact *::-webkit-scrollbar"));
+        // Outline: no visible scrollbar; page: slim visible scrollbar.
+        assertTrue(toolbarCss.contains("#outlinesView.treeView::-webkit-scrollbar"));
+        assertTrue(toolbarCss.contains("scrollbar-width: none !important"));
+        int pageScrollbar = toolbarCss.indexOf("html.kk-compact #viewerContainer::-webkit-scrollbar");
+        assertTrue(pageScrollbar >= 0);
+        String pageScrollbarBlock = toolbarCss.substring(pageScrollbar, pageScrollbar + 220);
+        assertTrue(pageScrollbarBlock.contains("width: 8px"));
+    }
+
+    @Test
     void shouldForwardShowtoolsQueryToPdfViewer() throws IOException {
         String pdfTemplate = readResource("/web/pdf.ftl");
 
