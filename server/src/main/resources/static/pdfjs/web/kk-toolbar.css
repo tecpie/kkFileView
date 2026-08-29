@@ -80,15 +80,34 @@ html.kk-compact #viewerContainer {
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
-  /* Hide page scrollbar only; outline panel keeps its own. */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  /* Slim page scrollbar — outline panel keeps its bar hidden. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(26, 23, 20, 0.28) transparent;
+  -ms-overflow-style: auto;
 }
 
 html.kk-compact #viewerContainer::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
+  width: 8px !important;
+  height: 8px !important;
+  display: block !important;
+  background: transparent !important;
+}
+
+html.kk-compact #viewerContainer::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+html.kk-compact #viewerContainer::-webkit-scrollbar-thumb {
+  background: rgba(26, 23, 20, 0.22) !important;
+  border: 2px solid transparent;
+  background-clip: padding-box !important;
+  border-radius: 999px;
+  min-height: 48px;
+}
+
+html.kk-compact #viewerContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 23, 20, 0.38) !important;
+  background-clip: padding-box !important;
 }
 
 html.kk-compact #outerContainer.viewsManagerOpen #viewerContainer:not(.pdfPresentationMode),
@@ -164,7 +183,6 @@ html.kk-compact #viewsManagerContent {
   min-height: 0;
   max-height: 100%;
   padding: 0;
-  /* Parent clips; the outline tree itself scrolls with a visible bar. */
   overflow: hidden !important;
   display: flex;
   flex-direction: column;
@@ -176,38 +194,20 @@ html.kk-compact #outlinesView.treeView {
   max-height: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 6px 4px 10px 10px;
+  padding: 6px 10px 10px;
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  /* Keep PDF.js float layout so outline link clicks still navigate. */
+  /* Wheel scroll OK; no visible scrollbar on the outline panel. */
   overflow-x: hidden !important;
-  overflow-y: scroll !important;
-  scrollbar-width: auto !important;
-  scrollbar-color: #78716c #ece7df !important;
-  -ms-overflow-style: scrollbar !important;
-  scrollbar-gutter: stable;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 html.kk-compact #outlinesView.treeView::-webkit-scrollbar {
-  width: 12px !important;
-  height: 12px !important;
-  display: block !important;
-  background: #ece7df !important;
-}
-
-html.kk-compact #outlinesView.treeView::-webkit-scrollbar-track {
-  background: #ece7df !important;
-  border-radius: 0;
-}
-
-html.kk-compact #outlinesView.treeView::-webkit-scrollbar-thumb {
-  background: #78716c !important;
-  border: 2px solid #ece7df;
-  border-radius: 999px;
-  min-height: 40px;
-}
-
-html.kk-compact #outlinesView.treeView::-webkit-scrollbar-thumb:hover {
-  background: #57534e !important;
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
 }
 
 html.kk-compact #outlinesView.withNesting > .treeItem {
@@ -263,7 +263,7 @@ html.kk-compact #outlinesView .treeItem > a:hover {
 
 html.kk-compact #outlinesView .treeItem.selected > a {
   background: var(--kk-fog) !important;
-  box-shadow: inset 2px 0 0 var(--kk-ink);
+  box-shadow: none !important;
   color: var(--kk-ink) !important;
   font-weight: 600;
 }

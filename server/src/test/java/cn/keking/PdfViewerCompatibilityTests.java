@@ -87,9 +87,9 @@ public class PdfViewerCompatibilityTests {
         assertTrue(toolbarJs.contains("collapseOutlineToTopLevel"));
         assertTrue(toolbarJs.contains("pagemode"));
         assertTrue(toolbarJs.contains("sidebarViewOnLoad"));
-        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-25"));
-        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-25"));
-        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-25"));
+        assertTrue(viewerHtml.contains("kk-toolbar.js?v=zh-cn-toc-28"));
+        assertTrue(viewerHtml.contains("viewer.mjs?v=zh-cn-toc-28"));
+        assertTrue(pdfTemplate.contains("viewer.html?v=zh-cn-toc-28"));
         assertTrue(toolbarJs.contains("bindOutlineNavigation"));
     }
 
@@ -99,12 +99,16 @@ public class PdfViewerCompatibilityTests {
 
         assertTrue(toolbarCss.contains("#outlinesView.treeView"));
         assertTrue(toolbarCss.contains("max-height: min(72vh, 680px)"));
-        assertTrue(toolbarCss.contains("inset 2px 0 0 var(--kk-ink)"));
         assertTrue(toolbarCss.contains("#viewsManagerHeader"));
-        assertTrue(toolbarCss.contains("overflow-y: scroll"));
-        assertTrue(toolbarCss.contains("#outlinesView.treeView::-webkit-scrollbar"));
-        assertTrue(toolbarCss.contains("scrollbar-gutter: stable"));
+        assertTrue(!toolbarCss.contains("inset 2px 0 0 var(--kk-ink)"));
         assertTrue(!toolbarCss.contains("html.kk-compact *::-webkit-scrollbar"));
+        // Outline: no visible scrollbar; page: slim visible scrollbar.
+        assertTrue(toolbarCss.contains("#outlinesView.treeView::-webkit-scrollbar"));
+        assertTrue(toolbarCss.contains("scrollbar-width: none !important"));
+        int pageScrollbar = toolbarCss.indexOf("html.kk-compact #viewerContainer::-webkit-scrollbar");
+        assertTrue(pageScrollbar >= 0);
+        String pageScrollbarBlock = toolbarCss.substring(pageScrollbar, pageScrollbar + 220);
+        assertTrue(pageScrollbarBlock.contains("width: 8px"));
     }
 
     @Test
